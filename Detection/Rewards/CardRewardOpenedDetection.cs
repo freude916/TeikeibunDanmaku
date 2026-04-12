@@ -2,6 +2,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
+using TeikeibunDanmaku.Core.Timepoints;
 
 namespace TeikeibunDanmaku.Detection.Rewards;
 
@@ -26,8 +27,10 @@ public static class CardRewardOpenedDetection
                 .OfType<CardModel>()
                 .ToList();
 
-            if (cards.Count == 0)
-                return;
+            foreach (var card in cards) // cards.Count == 0 就自动跳过了呗
+            {
+                RewardSeenTimepoint.From(card).Publish();
+            }
         }
         catch (Exception ex)
         {

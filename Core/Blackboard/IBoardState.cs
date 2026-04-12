@@ -1,25 +1,50 @@
 using System.Collections.Concurrent;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace TeikeibunDanmaku.Blackboard;
 
 public interface IBoardState
 {
-    Dictionary<string, PropertyInfo> Fields => BoardStateRegistry.GetFields(this.GetType());
+    IReadOnlyDictionary<string, BoardFieldDescriptor> FieldDescriptors => BoardStateRegistry.GetFieldDescriptors(GetType());
 }
 
-// 1. 定义一个专门存储字段信息的泛型容器
 public static class BoardStateRegistry
 {
-    private static readonly ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> _cache = new();
+    private static readonly ConcurrentDictionary<Type, IReadOnlyDictionary<string, BoardFieldDescriptor>> _descriptorCache = new();
 
-    public static Dictionary<string, PropertyInfo> GetFields(Type type)
+    public static IReadOnlyDictionary<string, BoardFieldDescriptor> GetFieldDescriptors(Type type)
     {
-        return _cache.GetOrAdd(type, t => 
+        return _descriptorCache.GetOrAdd(type, BuildDescriptors);
+    }
+
+    private static IReadOnlyDictionary<string, BoardFieldDescriptor> BuildDescriptors(Type stateType)
+    {
+        return stateType
+            .GetProperties()
+            .Where(p => Attribute.IsDefined(p, typeof(DataFieldAttribute)))
+            .ToDictionary(p => p.Name, BuildDescriptor);
+    }
+
+    private static BoardFieldDescriptor BuildDescriptor(PropertyInfo property)
+    {
+        var getterMethod = property.GetMethod;
+        var declaringType = property.DeclaringType;
+        if (getterMethod == null || declaringType == null)
+            throw new InvalidOperationException($"Data field '{property.Name}' must have a public getter.");
+
+        var stateParameter = Expression.Parameter(typeof(IBoardState), "state");
+        var castedState = Expression.Convert(stateParameter, declaringType);
+        var callGetter = Expression.Call(castedState, getterMethod);
+        var boxedValue = Expression.Convert(callGetter, typeof(object));
+        var getter = Expression.Lambda<Func<IBoardState, object?>>(boxedValue, stateParameter).Compile();
+
+        return new BoardFieldDescriptor
         {
-            return t.GetProperties()
-                .Where(p => Attribute.IsDefined(p, typeof(DataFieldAttribute)))
-                .ToDictionary(p => p.Name, p => p);
-        });
+            Name = property.Name,
+            ValueType = property.PropertyType,
+            PropertyInfo = property,
+            Getter = getter
+        };
     }
 }

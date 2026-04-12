@@ -6,7 +6,7 @@ public class CardState: IBoardState
 {
     [DataField] public required string ModelId { get; init; }
 
-    static CardState FromCardModel(CardModel model)
+    public static CardState FromCardModel(CardModel model)
     {
         return new CardState()
         {

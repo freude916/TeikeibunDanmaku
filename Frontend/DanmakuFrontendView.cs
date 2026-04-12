@@ -49,27 +49,29 @@ public sealed class DanmakuFrontendView : IDisposable
         _inputPanel.AddThemeStyleboxOverride("panel", panelStyle);
         _root.AddChild(_inputPanel);
 
-        var inputLayout = new HBoxContainer
-        {
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-            SizeFlagsVertical = Control.SizeFlags.ExpandFill
-        };
-        _inputPanel.AddChild(inputLayout);
+        if(false){
+            var inputLayout = new HBoxContainer
+            {
+                SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+                SizeFlagsVertical = Control.SizeFlags.ExpandFill
+            };
+            _inputPanel.AddChild(inputLayout);
 
-        _inputField = new LineEdit
-        {
-            PlaceholderText = "输入测试弹幕后按回车",
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
-        };
-        _inputField.TextSubmitted += OnTextSubmitted;
-        inputLayout.AddChild(_inputField);
+            _inputField = new LineEdit
+            {
+                PlaceholderText = "输入测试弹幕后按回车",
+                SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
+            };
+            _inputField.TextSubmitted += OnTextSubmitted;
+            inputLayout.AddChild(_inputField);
 
-        _sendButton = new Button
-        {
-            Text = "发送"
-        };
-        _sendButton.Pressed += OnSendPressed;
-        inputLayout.AddChild(_sendButton);
+            _sendButton = new Button
+            {
+                Text = "发送"
+            };
+            _sendButton.Pressed += OnSendPressed;
+            inputLayout.AddChild(_sendButton);
+        }
 
         _layoutTimer = new Timer
         {
