@@ -28,7 +28,7 @@ public sealed class DanmakuFrontendView : IDisposable
         };
         _root.AddChild(_overlayRoot);
         _overlayController = new DanmakuOverlayController(_overlayRoot);
-        DanmakuEventBus.DanmakuRequested += OnDanmakuRequested;
+        DanmakuStore.DanmakuRequested += OnDanmakuRequested;
 
         _inputPanel = new PanelContainer
         {
@@ -92,7 +92,7 @@ public sealed class DanmakuFrontendView : IDisposable
         _inputField.TextSubmitted -= OnTextSubmitted;
         _sendButton.Pressed -= OnSendPressed;
         _layoutTimer.Timeout -= OnLayoutTick;
-        DanmakuEventBus.DanmakuRequested -= OnDanmakuRequested;
+        DanmakuStore.DanmakuRequested -= OnDanmakuRequested;
         if (GodotObject.IsInstanceValid(_layoutTimer))
             _layoutTimer.QueueFree();
 

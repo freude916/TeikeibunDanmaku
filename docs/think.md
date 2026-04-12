@@ -1,0 +1,91 @@
+# 这是什么项目？
+
+为主播提供提供大量公式化弹幕预制菜以提升观众的观看体验！
+
+自带的图形化前端将弹幕直接创建 Godot 节点显示在屏幕内，滚动速度可配置，发送后端传入优先级自动应用少量颜色配置。
+
+后端在特定时间点检测到特定状态和条件发送弹幕。
+
+目前 Detection 里有一些 patch 。
+
+我们目前的开发目标：创建一个类型安全的 Detection -> ContextCollector -> RuleEngine -> MessageSender -> Frontend 的 pipeline。
+
+首先每个具体 Context 类里可能需要一个注解来标注有哪些 key？
+
+而且 Context 的初始化器最好就是 cardPlay 或 cardModel 之类的，这样就能保证不提取两次。
+
+# 乱写
+
+高内聚：每个时间点收集一系列上下文并向 Engine 上报。 例如篝火负责收集选项数量？
+
+为了可维护性，我们最好是每个类用一个方法读取上下文，尽管 Engine 很可能需要全量刷新。
+
+```json lines
+{
+  "rule_id": "rest_low_hp_sleep",
+  "timepoint": "rest.opened",
+  "condition": {
+    "type": "OR",
+    "conditions": [
+      {
+        "type": "le",
+        "property": "player_hp",
+        "value": 20
+      },
+      {
+        "type": "contain_id",
+        "property": "player_deck",
+        "ModelId": "PERFECT_STRIKE"
+      },
+      {
+        "type": "contain_tag",
+        "property": "player_deck",
+        "ModelId": "STRIKE"
+      },
+      {
+        "type": "is_id",
+        "property": "recent_card",
+        "ModelId": "BIRD_EGG"
+      },
+    ]
+  },
+  "messages": [
+    "好好睡，好好睡",
+    "这下不得不睡了"
+  ],
+  "cooldown_ms": 60000,
+  "once_per_run": false
+}
+```
+
+允许一个 rule_id 定义多次，可以合并 messages 作为弹幕拓展包，（甚至可能考虑合并 condition 的 OR）
+
+类型不安全？ property 名字可能需要一个检查？
+
+| 分类     | 条数 | 已有具体业务例子                                          |
+|--------|---:|---------------------------------------------------|
+| 战斗出牌   | 19 | 单卡伤害>50、回合伤害/抽牌比超阈值、手牌同类型、牌序错误、单卡多段攻击30+、回合打牌100+ |
+| 奖励     | 13 | 精英无伤、看见终端、拿到终端、跳过终端、同卡拿>=2次、关键终端二选一               |
+| 商店     |  7 | 离店金币>50%、单次购买花费>50%、看见终端、首购<=3秒、商店跳过终端            |
+
+规则总是关联到一个时间点。
+
+在触发的时间点，有一些短期的上下文和一些长期的上下文被收集，其中短期仅在当前时间点的回调中提交，而长期的则会缓存。
+
+```json lines
+{
+  "rule_name": "reward_see_perfect_strike",
+  "timepoint": "reward.seen",
+  "condition": {
+    "op": "str_eq",
+    "prop": "Card.ModelId",
+    "value": "PERFECT_STRIKE",
+  },
+  "messages": [
+    "零秒猜出二层先古之民会给什么遗物",
+  ]
+}
+```
+
+我们假设编辑器完全由我们撰写，因此最好给所有对象都实现 Serialize/Deserialize 以及校验，这样加载规则时可以 fail-fast。
+

@@ -1,6 +1,6 @@
 namespace TeikeibunDanmaku.Core;
 
-public static class DanmakuEventBus
+public static class DanmakuStore
 {
     public static event Action<string>? DanmakuRequested;
 
