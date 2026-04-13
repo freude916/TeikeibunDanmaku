@@ -1,19 +1,28 @@
-using TeikeibunDanmaku.Core.Timepoints;
+using TeikeibunDanmaku.Core.Rules;
+using TeikeibunDanmaku.Frontend;
 using TeikeibunDanmaku.Timepoints;
-using TeikeibunDanmaku.Core;
 
-namespace TeikeibunDanmaku.Core.Rules;
+namespace TeikeibunDanmaku.Core;
 
 public sealed class RuleEngine : IDisposable
 {
-    private readonly IReadOnlyList<Rule> _rules;
+    private readonly List<Rule> _rules;
     private bool _disposed;
 
-    public RuleEngine(IReadOnlyList<Rule> rules)
+    public RuleEngine(IEnumerable<Rule> rules)
     {
-        _rules = rules ?? throw new ArgumentNullException(nameof(rules));
+        ArgumentNullException.ThrowIfNull(rules);
+        _rules = [.. rules];
         TimepointBus.Published += OnTimepointPublished;
     }
+
+    public void AppendRules(IEnumerable<Rule> rules)
+    {
+        ArgumentNullException.ThrowIfNull(rules);
+        _rules.AddRange(rules);
+    }
+
+    public int RuleCount => _rules.Count;
 
     public void Dispose()
     {
@@ -30,7 +39,8 @@ public sealed class RuleEngine : IDisposable
     {
         ArgumentNullException.ThrowIfNull(timepoint);
 
-        foreach (var rule in _rules)
+        var rulesSnapshot = _rules.ToArray();
+        foreach (var rule in rulesSnapshot)
         {
             if (!rule.Matches(timepoint))
             {
@@ -39,8 +49,9 @@ public sealed class RuleEngine : IDisposable
 
             foreach (var message in rule.Messages)
             {
-                MainFile.Logger.Info($"Danmaku send: {message}");
-                DanmakuStore.Publish(message);
+                var rendered = MessageTemplateRenderer.Render(message, timepoint.BoardState);
+                MainFile.Logger.Info($"Danmaku send: {rendered}");
+                DanmakuStore.Publish(rendered);
             }
         }
     }

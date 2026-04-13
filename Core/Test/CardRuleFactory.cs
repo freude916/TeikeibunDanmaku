@@ -1,8 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using MegaCrit.Sts2.Core.Models;
-using TeikeibunDanmaku.Core.Timepoints;
+using TeikeibunDanmaku.Core.Condition;
 using TeikeibunDanmaku.Core.Rules;
+using TeikeibunDanmaku.Timepoints;
 
 namespace TeikeibunDanmaku.Core.Test;
 
@@ -33,10 +34,33 @@ public static class CardRuleFactory
                 Key = "ModelId",
                 Value = modelId
             },
-            Messages = messages.ToArray()
+            Messages = [.. messages]
         };
 
         // Test path requirement: always round-trip through JSON.
+        var json = JsonSerializer.Serialize(payload);
+        using var document = JsonDocument.Parse(json);
+        var deserializer = new RuleDeserializer(new TimepointStateResolver());
+        return deserializer.Deserialize(document.RootElement);
+    }
+
+    public static Rule CreateSpecialCardRule(string conditionType, string key, object value, IReadOnlyList<string> messages)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(messages);
+        
+        var payload = new RulePayload
+        {
+            RuleId = $"test.reward_seen.test_{key}_{value}",
+            Timepoint = RewardSeenTimepoint.TimepointId,
+            Condition = new ConditionPayload
+            {
+                Type = conditionType,
+                Key = key,
+                Value = value,
+            },
+            Messages = [.. messages]
+        };
         var json = JsonSerializer.Serialize(payload);
         using var document = JsonDocument.Parse(json);
         var deserializer = new RuleDeserializer(new TimepointStateResolver());
@@ -67,6 +91,6 @@ public static class CardRuleFactory
         public required string Key { get; init; }
 
         [JsonPropertyName("value")]
-        public required string Value { get; init; }
+        public required object Value { get; init; }
     }
 }

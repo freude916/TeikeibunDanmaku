@@ -3,17 +3,17 @@ using TeikeibunDanmaku.Core.Blackboard;
 
 namespace TeikeibunDanmaku.Timepoints;
 
-public sealed class RewardSeenTimepoint: Timepoint<CardState>
+public sealed class ShopSeenTimepoint : Timepoint<CardState>
 {
-    public const string TimepointId = "reward.seen";
+    public const string TimepointId = "shop.seen";
 
     public override string Id => TimepointId;
 
-    public static RewardSeenTimepoint From(CardModel model)
+    public static ShopSeenTimepoint From(CardModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        return new RewardSeenTimepoint
+        return new ShopSeenTimepoint
         {
             State = CardState.FromCardModel(model)
         };

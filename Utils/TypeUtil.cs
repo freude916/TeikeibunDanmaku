@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Text.Json;
 
-namespace TeikeibunDanmaku.Core.Rules;
+namespace TeikeibunDanmaku.Utils;
 
-public static class Util
+public static class TypeUtil
 {
     public static Type GetNonNullableType(Type type)
     {
@@ -32,7 +32,7 @@ public static class Util
     {
         if (value is null)
         {
-            result = default;
+            result = 0;
             return false;
         }
 
@@ -61,6 +61,7 @@ public static class Util
 
     public static bool TryParseNumericJsonAsDouble(JsonElement valueElement, out double result)
     {
+        // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
         switch (valueElement.ValueKind)
         {
             case JsonValueKind.Number:
@@ -73,7 +74,8 @@ public static class Util
                 break;
             case JsonValueKind.String:
                 var text = valueElement.GetString();
-                if (double.TryParse(text, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var parsed))
+                if (double.TryParse(text, NumberStyles.Float | NumberStyles.AllowThousands,
+                        CultureInfo.InvariantCulture, out var parsed))
                 {
                     result = parsed;
                     return true;
@@ -82,7 +84,7 @@ public static class Util
                 break;
         }
 
-        result = default;
+        result = 0;
         return false;
     }
 
@@ -94,7 +96,7 @@ public static class Util
             return true;
         }
 
-        value = default;
+        value = false;
         return false;
     }
 }

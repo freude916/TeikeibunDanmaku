@@ -1,14 +1,17 @@
 using System.Text.Json;
+using TeikeibunDanmaku.Core.Condition;
+using TeikeibunDanmaku.Timepoints;
 
 namespace TeikeibunDanmaku.Core.Rules;
 
-public sealed class RuleDeserializer
+public sealed class RuleDeserializer(TimepointStateResolver timepointStateResolver, ConditionRegistry conditionRegistry)
 {
-    private readonly ITimepointStateResolver _timepointStateResolver;
+    private readonly TimepointStateResolver _timepointStateResolver = timepointStateResolver ?? throw new ArgumentNullException(nameof(timepointStateResolver));
+    private readonly ConditionDeserializer _conditionDeserializer = new(conditionRegistry ?? throw new ArgumentNullException(nameof(conditionRegistry)));
 
-    public RuleDeserializer(ITimepointStateResolver timepointStateResolver)
+    public RuleDeserializer(TimepointStateResolver timepointStateResolver)
+        : this(timepointStateResolver, ConditionRegistry.CreateDefault())
     {
-        _timepointStateResolver = timepointStateResolver ?? throw new ArgumentNullException(nameof(timepointStateResolver));
     }
 
     public Rule Deserialize(JsonElement json)
@@ -20,8 +23,9 @@ public sealed class RuleDeserializer
         var conditionElement = json.GetProperty("condition");
         var messagesElement = json.GetProperty("messages");
         var stateType = _timepointStateResolver.ResolveStateType(timepointId);
-        var condition = ConditionDeserializer.Deserialize(conditionElement, stateType);
+        var condition = _conditionDeserializer.Deserialize(conditionElement, stateType);
         var messages = ParseMessages(messagesElement);
+        MessageTemplateRenderer.ValidateTemplates(messages, stateType);
 
         return new Rule
         {
@@ -31,17 +35,16 @@ public sealed class RuleDeserializer
             Messages = messages
         };
     }
-    
-    private static IReadOnlyList<string> ParseMessages(JsonElement messagesElement)
+
+    private static string[] ParseMessages(JsonElement messagesElement)
     {
         if (messagesElement.ValueKind != JsonValueKind.Array)
         {
             throw new JsonException("Property 'messages' must be an array.");
         }
 
-        return messagesElement
+        return [.. messagesElement
             .EnumerateArray()
-            .Select(m => m.GetString() ?? throw new JsonException("Rule message cannot be null."))
-            .ToArray();
+            .Select(m => m.GetString() ?? throw new JsonException("Rule message cannot be null."))];
     }
 }

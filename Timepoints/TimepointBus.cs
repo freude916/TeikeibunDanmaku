@@ -1,6 +1,4 @@
-using TeikeibunDanmaku.Timepoints;
-
-namespace TeikeibunDanmaku.Core.Timepoints;
+namespace TeikeibunDanmaku.Timepoints;
 
 public static class TimepointBus
 {

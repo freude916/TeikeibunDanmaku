@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace TeikeibunDanmaku.Blackboard;
+namespace TeikeibunDanmaku.Core.Blackboard;
 
 public interface IBoardState
 {

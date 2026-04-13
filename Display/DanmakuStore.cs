@@ -1,4 +1,4 @@
-namespace TeikeibunDanmaku.Core;
+namespace TeikeibunDanmaku.Frontend;
 
 public static class DanmakuStore
 {

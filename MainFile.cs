@@ -2,7 +2,6 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Modding;
 using TeikeibunDanmaku.Core;
-using TeikeibunDanmaku.Core.Rules;
 
 namespace TeikeibunDanmaku;
 
@@ -20,6 +19,7 @@ public partial class MainFile : Node
         Harmony harmony = new(ModId);
 
         harmony.PatchAll();
+        RuleRuntime.AppendRules(RuleRuntime.LoadRulesFromDefaultDirectory());
         RuleRuntime.Initialize();
         
         Logger.Info("Danmaku initialized.");

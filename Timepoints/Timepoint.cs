@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Reflection;
-using TeikeibunDanmaku.Blackboard;
-using TeikeibunDanmaku.Core.Timepoints;
+using TeikeibunDanmaku.Core.Blackboard;
 
 namespace TeikeibunDanmaku.Timepoints;
 

@@ -1,3 +1,4 @@
+using TeikeibunDanmaku.Core.Condition;
 using TeikeibunDanmaku.Timepoints;
 
 namespace TeikeibunDanmaku.Core.Rules;
@@ -14,5 +15,16 @@ public sealed class Rule
         ArgumentNullException.ThrowIfNull(timepoint);
 
         return timepoint.Id == TimepointId && Condition.Evaluate(timepoint.BoardState);
+    }
+
+    public RuleDto Serialize()
+    {
+        return new RuleDto
+        {
+            RuleId = RuleId,
+            Timepoint = TimepointId,
+            Condition = Condition.Serialize(),
+            Messages = Messages.ToArray()
+        };
     }
 }

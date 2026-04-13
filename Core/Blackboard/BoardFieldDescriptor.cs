@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace TeikeibunDanmaku.Blackboard;
+namespace TeikeibunDanmaku.Core.Blackboard;
 
 public sealed class BoardFieldDescriptor
 {

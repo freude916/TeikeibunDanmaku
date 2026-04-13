@@ -1,6 +1,8 @@
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Screens.Shops;
+using TeikeibunDanmaku.Timepoints;
 
 namespace TeikeibunDanmaku.Detection.Shop;
 
@@ -21,7 +23,15 @@ public static class ShopOpenedDetection
 
         try
         {
-            // CardPlayDanmakuEngine.OnShopOpened(inventory);
+            var cards = inventory.CardEntries
+                .Select(entry => entry.CreationResult?.Card)
+                .OfType<CardModel>()
+                .ToList();
+
+            foreach (var card in cards)
+            {
+                ShopSeenTimepoint.From(card).Publish();
+            }
         }
         catch (Exception ex)
         {
