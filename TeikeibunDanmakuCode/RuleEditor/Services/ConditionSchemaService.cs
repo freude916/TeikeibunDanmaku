@@ -39,7 +39,7 @@ public sealed class ConditionSchemaService
     public IReadOnlyList<BoardFieldDescriptor> GetAllowedFieldDescriptors(string timepointId, string conditionType)
     {
         var stateType = _stateResolver.ResolveStateType(timepointId);
-        var descriptors = BoardStateRegistry.GetFieldDescriptors(stateType);
+        var descriptors = FieldDescriptorResolver.GetFieldDescriptors(stateType);
 
         IEnumerable<BoardFieldDescriptor> fields = conditionType switch
         {
@@ -67,7 +67,7 @@ public sealed class ConditionSchemaService
         }
 
         var stateType = _stateResolver.ResolveStateType(timepointId);
-        var descriptors = BoardStateRegistry.GetFieldDescriptors(stateType);
+        var descriptors = FieldDescriptorResolver.GetFieldDescriptors(stateType);
         return descriptors.TryGetValue(key, out var descriptor) ? descriptor.DisplayName : key;
     }
 

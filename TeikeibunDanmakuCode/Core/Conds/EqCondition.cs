@@ -53,7 +53,7 @@ public sealed class EqConditionCodec : ConditionCodec
 
         var key = dto.Key ?? throw new JsonException("Property 'key' cannot be null.");
         var value = dto.Value;
-        var descriptors = BoardStateRegistry.GetFieldDescriptors(stateType);
+        var descriptors = FieldDescriptorResolver.GetFieldDescriptors(stateType);
 
         if (!descriptors.TryGetValue(key, out var descriptor))
         {

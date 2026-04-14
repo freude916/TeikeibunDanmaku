@@ -7,7 +7,7 @@ namespace TeikeibunDanmaku.Core.Rules;
 public static class MessageTemplateRenderer
 {
     private static readonly Regex CatchphraseRegex = new(@"\{\{(?<key>[A-Za-z_][A-Za-z0-9_]*)\}\}", RegexOptions.Compiled);
-    private static readonly Regex PlaceholderRegex = new(@"\$\{(?<key>[A-Za-z_][A-Za-z0-9_]*)\}", RegexOptions.Compiled);
+    private static readonly Regex PlaceholderRegex = new(@"\$\{(?<key>[A-Za-z_][A-Za-z0-9_.]*)\}", RegexOptions.Compiled);
 
     public static string Render(string template, IBoardState state)
     {
@@ -53,7 +53,7 @@ public static class MessageTemplateRenderer
         ArgumentNullException.ThrowIfNull(templates);
         ArgumentNullException.ThrowIfNull(stateType);
 
-        var descriptors = BoardStateRegistry.GetFieldDescriptors(stateType);
+        var descriptors = FieldDescriptorResolver.GetFieldDescriptors(stateType);
         for (var i = 0; i < templates.Count; i++)
         {
             var template = templates[i] ?? throw new InvalidOperationException($"Rule message at index {i} cannot be null.");

@@ -6,7 +6,7 @@ namespace TeikeibunDanmaku.Core.Blackboard;
 
 public interface IBoardState
 {
-    IReadOnlyDictionary<string, BoardFieldDescriptor> FieldDescriptors => BoardStateRegistry.GetFieldDescriptors(GetType());
+    IReadOnlyDictionary<string, BoardFieldDescriptor> FieldDescriptors => FieldDescriptorResolver.GetFieldDescriptors(GetType());
 }
 
 public static class BoardStateRegistry

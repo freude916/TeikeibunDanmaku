@@ -1,4 +1,5 @@
 using TeikeibunDanmaku.Core.Rules;
+using TeikeibunDanmaku.Core.Blackboard;
 using TeikeibunDanmaku.Display;
 using TeikeibunDanmaku.Timepoints;
 
@@ -38,6 +39,7 @@ public sealed class RuleEngine : IDisposable
     private void OnTimepointPublished(Timepoint timepoint)
     {
         ArgumentNullException.ThrowIfNull(timepoint);
+        LongStateCache.RefreshFromGame();
 
         var rulesSnapshot = _rules.ToArray();
         foreach (var rule in rulesSnapshot)

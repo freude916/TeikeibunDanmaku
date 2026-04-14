@@ -71,7 +71,7 @@ public sealed partial class ConditionEditorDialog : PanelContainer
 
         SelectType(_current.Type);
         RebuildKeyOptions(_current.Type, _current.Key);
-        _valueInput.Text = _current.Value?.ToString() ?? string.Empty;
+        _valueInput.Text = GetValueInputText(_current.Type, _current.Value);
         RebuildChildren();
         RefreshVisibility();
         SetStatus(status);
@@ -94,7 +94,7 @@ public sealed partial class ConditionEditorDialog : PanelContainer
         {
             Type = type,
             Key = key,
-            Value = _valueInput.Text
+            Value = BuildValueFromInput(type, _valueInput.Text)
         };
     }
 
@@ -283,5 +283,17 @@ public sealed partial class ConditionEditorDialog : PanelContainer
     private static string BuildPathText(IReadOnlyList<int> path)
     {
         return path.Count == 0 ? "root" : string.Join('.', path);
+    }
+
+    private static object? BuildValueFromInput(string type, string input)
+    {
+        _ = type;
+        return input;
+    }
+
+    private static string GetValueInputText(string type, object? value)
+    {
+        _ = type;
+        return value?.ToString() ?? string.Empty;
     }
 }

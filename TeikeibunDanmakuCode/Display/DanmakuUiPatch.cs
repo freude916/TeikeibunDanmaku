@@ -2,6 +2,7 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Runs;
+using TeikeibunDanmaku.Core.Blackboard;
 
 namespace TeikeibunDanmaku.Display;
 
@@ -17,7 +18,8 @@ public static class DanmakuUiPatch
     public static void InitializePostfix(NGlobalUi __instance, RunState runState)
     {
         ArgumentNullException.ThrowIfNull(__instance);
-        _ = runState;
+        LongStateCache.Reset();
+        LongStateCache.RefreshFromRunState(runState);
 
         if (_disabledAfterFailure)
             return;
