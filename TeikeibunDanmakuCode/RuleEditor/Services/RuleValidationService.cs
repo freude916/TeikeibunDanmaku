@@ -60,6 +60,15 @@ public sealed class RuleValidationService
             return ValidationResult.Fail($"{path}.timepoint.invalid");
         }
 
+        try
+        {
+            MessageTemplateRenderer.ValidateTemplates(rule.Messages, stateType);
+        }
+        catch (Exception ex)
+        {
+            return ValidationResult.Fail($"{path}.messages.invalid", ex.Message);
+        }
+
         return ValidateCondition(rule.Condition, stateType, $"{path}.condition");
     }
 

@@ -86,6 +86,10 @@ placeholder_text = "输入消息文本"
 unique_name_in_owner = true
 text = "添加"
 
+[node name="TemplateMenuButton" type="MenuButton" parent="Margin/Root/MsgRow1"]
+unique_name_in_owner = true
+text = "快捷插入"
+
 [node name="UpdateMessageButton" type="Button" parent="Margin/Root/MsgRow1"]
 unique_name_in_owner = true
 text = "更新选中"

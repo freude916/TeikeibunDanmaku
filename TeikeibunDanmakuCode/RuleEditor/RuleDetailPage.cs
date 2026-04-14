@@ -1,4 +1,5 @@
 using Godot;
+using TeikeibunDanmaku.Core.Message;
 using TeikeibunDanmaku.Core.Condition;
 using TeikeibunDanmaku.Core.Rules;
 using TeikeibunDanmaku.RuleEditor.Model;
@@ -9,15 +10,20 @@ namespace TeikeibunDanmaku.RuleEditor;
 
 public sealed partial class RuleDetailPage : PanelContainer
 {
+    private const string TemplateSectionCatchphrase = "口癖模板";
+    private const string TemplateSectionField = "字段模板";
+
     private LineEdit _ruleIdInput = null!;
     private OptionButton _timepointSelect = null!;
     private ItemList _messageList = null!;
     private LineEdit _messageInput = null!;
+    private MenuButton _templateMenuButton = null!;
     private Label _conditionSummary = null!;
     private Label _statusLabel = null!;
 
     private ConditionDto _currentCondition = null!;
     private readonly ConditionSchemaService _schemaService = new();
+    private readonly Dictionary<int, string> _messageTemplateTokens = new();
 
     public event Action<RuleDto>? DoneRequested;
     public event Action? CancelRequested;
@@ -29,6 +35,7 @@ public sealed partial class RuleDetailPage : PanelContainer
         _timepointSelect = GetNode<OptionButton>("%TimepointSelect");
         _messageList = GetNode<ItemList>("%MessageList");
         _messageInput = GetNode<LineEdit>("%MessageInput");
+        _templateMenuButton = GetNode<MenuButton>("%TemplateMenuButton");
         _conditionSummary = GetNode<Label>("%ConditionSummaryLabel");
         _statusLabel = GetNode<Label>("%StatusLabel");
 
@@ -41,6 +48,10 @@ public sealed partial class RuleDetailPage : PanelContainer
         GetNode<Button>("%EditConditionButton").Pressed += () => EditConditionRequested?.Invoke();
         GetNode<Button>("%DoneButton").Pressed += EmitDone;
         GetNode<Button>("%CancelButton").Pressed += () => CancelRequested?.Invoke();
+
+        var popup = _templateMenuButton.GetPopup();
+        popup.AboutToPopup += RebuildMessageTemplateMenu;
+        popup.IdPressed += OnTemplateMenuItemPressed;
     }
 
     public void BeginEdit(RuleDto rule, IReadOnlyList<TimepointDescriptor> timepoints, string status)
@@ -144,6 +155,76 @@ public sealed partial class RuleDetailPage : PanelContainer
 
         _messageList.AddItem(text.Trim());
         _messageInput.Text = string.Empty;
+    }
+
+    private void RebuildMessageTemplateMenu()
+    {
+        var popup = _templateMenuButton.GetPopup();
+        popup.Clear();
+        _messageTemplateTokens.Clear();
+
+        var nextId = 1;
+        var hasAny = false;
+
+        var catchphraseTemplates = CatchphraseRegistry.ListTemplates();
+        if (catchphraseTemplates.Count > 0)
+        {
+            popup.AddSeparator(TemplateSectionCatchphrase);
+            foreach (var template in catchphraseTemplates)
+            {
+                var label = $"{template.DisplayName}  {template.Token}";
+                popup.AddItem(label, nextId);
+                _messageTemplateTokens[nextId] = template.Token;
+                nextId++;
+                hasAny = true;
+            }
+        }
+
+        var timepointId = GetSelectedTimepoint();
+        var fieldTemplates = _schemaService.GetAllowedFieldDescriptors(timepointId, ConditionType.Eq);
+        if (fieldTemplates.Count > 0)
+        {
+            popup.AddSeparator(TemplateSectionField);
+            foreach (var field in fieldTemplates)
+            {
+                var token = "${" + field.Name + "}";
+                var label = $"{field.DisplayName}  {token}";
+                popup.AddItem(label, nextId);
+                _messageTemplateTokens[nextId] = token;
+                nextId++;
+                hasAny = true;
+            }
+        }
+
+        if (!hasAny)
+        {
+            popup.AddItem("暂无可插入模板");
+            popup.SetItemDisabled(0, true);
+        }
+    }
+
+    private void OnTemplateMenuItemPressed(long id)
+    {
+        if (!_messageTemplateTokens.TryGetValue((int)id, out var token))
+        {
+            return;
+        }
+
+        InsertMessageTemplateToken(token);
+    }
+
+    private void InsertMessageTemplateToken(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return;
+        }
+
+        var source = _messageInput.Text;
+        var caret = Math.Clamp(_messageInput.CaretColumn, 0, source.Length);
+        _messageInput.Text = source.Insert(caret, token);
+        _messageInput.CaretColumn = caret + token.Length;
+        _messageInput.GrabFocus();
     }
 
     private void UpdateSelectedMessage()
