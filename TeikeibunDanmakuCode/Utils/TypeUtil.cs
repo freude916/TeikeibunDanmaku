@@ -99,4 +99,28 @@ public static class TypeUtil
         value = false;
         return false;
     }
+
+    public static bool IsStringEnumerableType(Type type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+        var nonNullableType = GetNonNullableType(type);
+
+        if (nonNullableType == typeof(string))
+            return false;
+
+        if (nonNullableType.IsArray)
+            return nonNullableType.GetElementType() == typeof(string);
+
+        if (nonNullableType.IsGenericType &&
+            nonNullableType.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+            nonNullableType.GetGenericArguments()[0] == typeof(string))
+        {
+            return true;
+        }
+
+        return nonNullableType.GetInterfaces()
+            .Any(interfaceType => interfaceType.IsGenericType &&
+                                  interfaceType.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+                                  interfaceType.GetGenericArguments()[0] == typeof(string));
+    }
 }

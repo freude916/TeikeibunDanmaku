@@ -6,9 +6,12 @@ public sealed class TimepointStateResolver
 {
     private static readonly IReadOnlyList<TimepointDescriptor> Timepoints =
     [
+        new(RunStartedTimepoint.TimepointId, RunStartedTimepoint.TimepointDisplayName, typeof(RunStartedState)),
         new(RewardSeenTimepoint.TimepointId, RewardSeenTimepoint.TimepointDisplayName, typeof(CardState)),
         new(ShopSeenTimepoint.TimepointId, ShopSeenTimepoint.TimepointDisplayName, typeof(CardState)),
-        new(CardPlayedTimepoint.TimepointId, CardPlayedTimepoint.TimepointDisplayName, typeof(CardPlayState))
+        new(EventSeenTimepoint.TimepointId, EventSeenTimepoint.TimepointDisplayName, typeof(EventState)),
+        new(CardPlayedTimepoint.TimepointId, CardPlayedTimepoint.TimepointDisplayName, typeof(CardPlayState)),
+        new(CombatRoomEnteredTimepoint.TimepointId, CombatRoomEnteredTimepoint.TimepointDisplayName, typeof(CombatRoomEnteredState))
     ];
 
     public IReadOnlyList<TimepointDescriptor> ListTimepoints() => Timepoints;

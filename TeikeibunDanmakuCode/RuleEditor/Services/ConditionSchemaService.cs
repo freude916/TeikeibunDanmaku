@@ -49,6 +49,9 @@ public sealed class ConditionSchemaService
             ConditionType.StrFind => descriptors
                 .Where(pair => TypeUtil.GetNonNullableType(pair.Value.ValueType) == typeof(string))
                 .Select(pair => pair.Value),
+            ConditionType.ListContains => descriptors
+                .Where(pair => TypeUtil.IsStringEnumerableType(pair.Value.ValueType))
+                .Select(pair => pair.Value),
             ConditionType.Eq => descriptors.Values,
             _ => []
         };
@@ -111,6 +114,7 @@ public sealed class ConditionSchemaService
             {
                 ConditionType.ValueLt or ConditionType.ValueGt => "0",
                 ConditionType.StrFind => string.Empty,
+                ConditionType.ListContains => string.Empty,
                 _ => "0"
             };
         }

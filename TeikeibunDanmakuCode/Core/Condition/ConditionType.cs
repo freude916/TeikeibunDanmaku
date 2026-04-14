@@ -10,6 +10,7 @@ public static class ConditionType
     public const string ValueLt = "lt";
     public const string ValueGt = "gt";
     public const string StrFind = "find";
+    public const string ListContains = "contains";
 
     private static readonly IReadOnlyDictionary<string, string> DisplayNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
@@ -18,7 +19,8 @@ public static class ConditionType
         [Eq] = "等于",
         [ValueLt] = "数值小于",
         [ValueGt] = "数值大于",
-        [StrFind] = "字符串包含"
+        [StrFind] = "字符串包含",
+        [ListContains] = "列表包含"
     };
 
     public static string GetDisplayName(string type)

@@ -1,66 +1,66 @@
-using System.Reflection;
-
 namespace TeikeibunDanmaku.Core.Blackboard;
 
 public static class LongStateFieldRegistry
 {
-    private static readonly IReadOnlyDictionary<string, BoardFieldDescriptor> Descriptors =
-        new Dictionary<string, BoardFieldDescriptor>(StringComparer.Ordinal)
-        {
-            [RunPlayerHpKey] = BuildNumericDescriptor(
-                RunPlayerHpKey,
-                "玩家血量",
-                nameof(SyntheticFields.RunPlayerHp),
-                _ => LongStateCache.RunPlayerHp
-            ),
-            [RunPlayerGoldKey] = BuildNumericDescriptor(
-                RunPlayerGoldKey,
-                "玩家金币",
-                nameof(SyntheticFields.RunPlayerGold),
-                _ => LongStateCache.RunPlayerGold
-            ),
-            [RunPlayerDeckSizeKey] = BuildNumericDescriptor(
-                RunPlayerDeckSizeKey,
-                "牌组数量",
-                nameof(SyntheticFields.RunPlayerDeckSize),
-                _ => LongStateCache.RunPlayerDeckSize
-            )
-        };
-
-    public const string RunPlayerHpKey = "run.player_hp";
-    public const string RunPlayerGoldKey = "run.player_gold";
-    public const string RunPlayerDeckSizeKey = "run.player_deck_size";
+    private static readonly IReadOnlyDictionary<string, BoardFieldDescriptor> Descriptors = BuildDescriptors();
 
     public static IReadOnlyDictionary<string, BoardFieldDescriptor> GetDescriptors()
     {
         return Descriptors;
     }
 
-    private static BoardFieldDescriptor BuildNumericDescriptor(
-        string key,
-        string displayName,
-        string syntheticPropertyName,
-        Func<IBoardState, object?> getter)
+    private static IReadOnlyDictionary<string, BoardFieldDescriptor> BuildDescriptors()
     {
-        var property = typeof(SyntheticFields).GetProperty(
-            syntheticPropertyName,
-            BindingFlags.Public | BindingFlags.Instance
-        ) ?? throw new InvalidOperationException($"Synthetic property '{syntheticPropertyName}' was not found.");
+        var dataFieldDescriptors = BoardStateRegistry.GetFieldDescriptors(typeof(LongStateBoard));
+        var resolved = new Dictionary<string, BoardFieldDescriptor>(StringComparer.Ordinal);
 
-        return new BoardFieldDescriptor
+        foreach (var descriptor in dataFieldDescriptors.Values)
         {
-            Name = key,
-            DisplayName = displayName,
-            ValueType = typeof(int),
-            PropertyInfo = property,
-            Getter = getter
+            var externalKey = ToExternalKey(descriptor.Name);
+            resolved[externalKey] = new BoardFieldDescriptor
+            {
+                Name = externalKey,
+                DisplayName = descriptor.DisplayName,
+                ValueType = descriptor.ValueType,
+                PropertyInfo = descriptor.PropertyInfo,
+                Getter = BuildGetter(descriptor.Name)
+            };
+        }
+
+        return resolved;
+    }
+
+    private static Func<IBoardState, object?> BuildGetter(string propertyName)
+    {
+        return _ => propertyName switch
+        {
+            nameof(LongStateBoard.RunPlayerHp) => LongStateCache.RunPlayerHp,
+            nameof(LongStateBoard.RunPlayerGold) => LongStateCache.RunPlayerGold,
+            nameof(LongStateBoard.RunPlayerDeckSize) => LongStateCache.RunPlayerDeckSize,
+            _ => null
         };
     }
 
-    private sealed class SyntheticFields
+    private static string ToExternalKey(string propertyName)
     {
+        return propertyName switch
+        {
+            nameof(LongStateBoard.RunPlayerHp) => "run.player_hp",
+            nameof(LongStateBoard.RunPlayerGold) => "run.player_gold",
+            nameof(LongStateBoard.RunPlayerDeckSize) => "run.player_deck_size",
+            _ => throw new InvalidOperationException($"Unknown long state property '{propertyName}'.")
+        };
+    }
+
+    private sealed class LongStateBoard : IBoardState
+    {
+        [DataField("玩家血量")]
         public int RunPlayerHp => 0;
+
+        [DataField("玩家金币")]
         public int RunPlayerGold => 0;
+
+        [DataField("牌组数量")]
         public int RunPlayerDeckSize => 0;
     }
 }

@@ -45,6 +45,7 @@ public sealed class ConditionRegistry
             .Register(new LtConditionCodec())
             .Register(new GtConditionCodec())
             .Register(new FindConditionCodec())
+            .Register(new ListContainsConditionCodec())
             .Register(new AndConditionCodec())
             .Register(new OrConditionCodec())
             ;
