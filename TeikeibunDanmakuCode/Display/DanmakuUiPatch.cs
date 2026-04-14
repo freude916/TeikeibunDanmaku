@@ -1,6 +1,7 @@
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
+using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Runs;
 using TeikeibunDanmaku.Core.Blackboard;
 
@@ -9,21 +10,28 @@ namespace TeikeibunDanmaku.Display;
 [HarmonyPatch(typeof(NGlobalUi))]
 public static class DanmakuUiPatch
 {
+    [HarmonyPatch("Initialize")]
+    [HarmonyPostfix]
+    public static void InitializePostfix(RunState runState)
+    {
+        LongStateCache.Reset();
+        LongStateCache.RefreshFromRunState(runState);
+    }
+}
+
+[HarmonyPatch(typeof(NGame), nameof(NGame._Ready))]
+public static class DanmakuFrontendPatch
+{
     private const string FrontendMetaKey = "teikeibun_danmaku_frontend";
     private static bool _disabledAfterFailure;
     private static readonly Dictionary<ulong, DanmakuFrontendView> FrontendViews = [];
 
-    [HarmonyPatch("Initialize")]
     [HarmonyPostfix]
-    public static void InitializePostfix(NGlobalUi __instance, RunState runState)
+    public static void Postfix(NGame __instance)
     {
         ArgumentNullException.ThrowIfNull(__instance);
-        LongStateCache.Reset();
-        LongStateCache.RefreshFromRunState(runState);
-
         if (_disabledAfterFailure)
             return;
-
         if (FindFrontend(__instance) != null)
             return;
 
