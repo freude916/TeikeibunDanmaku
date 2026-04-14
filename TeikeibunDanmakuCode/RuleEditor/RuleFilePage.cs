@@ -1,5 +1,4 @@
 using Godot;
-using TeikeibunDanmaku.RuleEditor.I18n;
 
 namespace TeikeibunDanmaku.RuleEditor;
 
@@ -33,11 +32,6 @@ public sealed partial class RuleFilePage : PanelContainer
         _fileList.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         _fileList.SizeFlagsVertical = SizeFlags.ExpandFill;
         _fileNameInput.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-
-        GetNode<Label>("%TitleLabel").Text = EditorLoc.T("file.title");
-        _fileNameInput.PlaceholderText = EditorLoc.T("file.placeholder");
-        GetNode<Button>("%CreateButton").Text = EditorLoc.T("file.create_open");
-        GetNode<Button>("%OpenButton").Text = EditorLoc.T("file.open_selected");
 
         _fileList.ItemActivated += OnItemActivated;
         _fileNameInput.TextSubmitted += _ => EmitCreate();

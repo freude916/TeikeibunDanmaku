@@ -1,6 +1,6 @@
 using Godot;
 using TeikeibunDanmaku.Core.Rules;
-using TeikeibunDanmaku.RuleEditor.I18n;
+using TeikeibunDanmaku.RuleEditor.Services;
 
 namespace TeikeibunDanmaku.RuleEditor;
 
@@ -9,6 +9,7 @@ public sealed partial class RuleListPage : PanelContainer
     private Label _fileLabel = null!;
     private ItemList _ruleList = null!;
     private Label _statusLabel = null!;
+    private readonly ConditionSchemaService _schemaService = new();
 
     public event Action? AddRequested;
     public event Action<int>? EditRequested;
@@ -40,15 +41,6 @@ public sealed partial class RuleListPage : PanelContainer
         _ruleList.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         _ruleList.SizeFlagsVertical = SizeFlags.ExpandFill;
 
-        GetNode<Button>("%AddButton").Text = EditorLoc.T("list.add");
-        GetNode<Button>("%EditButton").Text = EditorLoc.T("list.edit");
-        GetNode<Button>("%DeleteButton").Text = EditorLoc.T("list.delete");
-        GetNode<Button>("%MoveUpButton").Text = EditorLoc.T("list.move_up");
-        GetNode<Button>("%MoveDownButton").Text = EditorLoc.T("list.move_down");
-        GetNode<Button>("%SaveButton").Text = EditorLoc.T("list.save_reload");
-        GetNode<Button>("%SwitchFileButton").Text = EditorLoc.T("list.switch_file");
-        GetNode<Button>("%CloseButton").Text = EditorLoc.T("list.close");
-
         _ruleList.ItemActivated += index => EditRequested?.Invoke((int)index);
         GetNode<Button>("%AddButton").Pressed += () => AddRequested?.Invoke();
         GetNode<Button>("%EditButton").Pressed += () => EmitIndex(EditRequested);
@@ -63,16 +55,17 @@ public sealed partial class RuleListPage : PanelContainer
     public void SetData(string? currentFilePath, IReadOnlyList<RuleDto> rules, bool isDirty, string status)
     {
         var fileName = string.IsNullOrWhiteSpace(currentFilePath)
-            ? EditorLoc.T("list.file_none")
+            ? "(未加载)"
             : Path.GetFileName(currentFilePath);
 
-        _fileLabel.Text = $"{EditorLoc.T("list.file")}: {fileName}{(isDirty ? " *" : string.Empty)}";
+        _fileLabel.Text = $"文件: {fileName}{(isDirty ? " *" : string.Empty)}";
 
         _ruleList.Clear();
         for (var index = 0; index < rules.Count; index++)
         {
             var rule = rules[index];
-            _ruleList.AddItem($"{index + 1}. {rule.RuleId} [{rule.Timepoint}]");
+            var timepointName = _schemaService.GetTimepointDisplayName(rule.Timepoint);
+            _ruleList.AddItem($"{index + 1}. {rule.RuleId} [{timepointName}]");
         }
 
         _statusLabel.Text = status;

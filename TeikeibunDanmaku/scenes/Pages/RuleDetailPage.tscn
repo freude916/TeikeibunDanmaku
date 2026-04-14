@@ -36,6 +36,7 @@ theme_override_constants/separation = 10
 
 [node name="TitleLabel" type="Label" parent="Margin/Root"]
 unique_name_in_owner = true
+text = "编辑规则"
 
 [node name="RuleRow" type="HBoxContainer" parent="Margin/Root"]
 size_flags_horizontal = 3
@@ -44,6 +45,7 @@ theme_override_constants/separation = 8
 [node name="RuleIdLabel" type="Label" parent="Margin/Root/RuleRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 0)
+text = "rule_id"
 
 [node name="RuleIdInput" type="LineEdit" parent="Margin/Root/RuleRow"]
 unique_name_in_owner = true
@@ -56,6 +58,7 @@ theme_override_constants/separation = 8
 [node name="TimepointLabel" type="Label" parent="Margin/Root/TimepointRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 0)
+text = "timepoint"
 
 [node name="TimepointSelect" type="OptionButton" parent="Margin/Root/TimepointRow"]
 unique_name_in_owner = true
@@ -63,6 +66,7 @@ size_flags_horizontal = 3
 
 [node name="MessagesLabel" type="Label" parent="Margin/Root"]
 unique_name_in_owner = true
+text = "messages"
 
 [node name="MessageList" type="ItemList" parent="Margin/Root"]
 unique_name_in_owner = true
@@ -76,15 +80,19 @@ theme_override_constants/separation = 8
 [node name="MessageInput" type="LineEdit" parent="Margin/Root/MsgRow1"]
 unique_name_in_owner = true
 size_flags_horizontal = 3
+placeholder_text = "输入消息文本"
 
 [node name="AddMessageButton" type="Button" parent="Margin/Root/MsgRow1"]
 unique_name_in_owner = true
+text = "添加"
 
 [node name="UpdateMessageButton" type="Button" parent="Margin/Root/MsgRow1"]
 unique_name_in_owner = true
+text = "更新选中"
 
 [node name="RemoveMessageButton" type="Button" parent="Margin/Root/MsgRow1"]
 unique_name_in_owner = true
+text = "删除选中"
 
 [node name="MsgRow2" type="HBoxContainer" parent="Margin/Root"]
 size_flags_horizontal = 3
@@ -92,9 +100,11 @@ theme_override_constants/separation = 8
 
 [node name="MoveMsgUpButton" type="Button" parent="Margin/Root/MsgRow2"]
 unique_name_in_owner = true
+text = "消息上移"
 
 [node name="MoveMsgDownButton" type="Button" parent="Margin/Root/MsgRow2"]
 unique_name_in_owner = true
+text = "消息下移"
 
 [node name="ConditionSummaryLabel" type="Label" parent="Margin/Root"]
 unique_name_in_owner = true
@@ -108,14 +118,17 @@ theme_override_constants/separation = 8
 [node name="EditConditionButton" type="Button" parent="Margin/Root/ActionRow"]
 unique_name_in_owner = true
 size_flags_horizontal = 3
+text = "编辑条件"
 
 [node name="DoneButton" type="Button" parent="Margin/Root/ActionRow"]
 unique_name_in_owner = true
 size_flags_horizontal = 3
+text = "完成"
 
 [node name="CancelButton" type="Button" parent="Margin/Root/ActionRow"]
 unique_name_in_owner = true
 size_flags_horizontal = 3
+text = "取消"
 
 [node name="StatusLabel" type="Label" parent="Margin/Root"]
 unique_name_in_owner = true

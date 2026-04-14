@@ -44,6 +44,7 @@ theme_override_constants/separation = 10
 [node name="PromptLabel" type="Label" parent="Margin/Root"]
 unique_name_in_owner = true
 autowrap_mode = 3
+text = "检测到未保存更改，是否先保存？"
 
 [node name="Buttons" type="HBoxContainer" parent="Margin/Root"]
 size_flags_horizontal = 3
@@ -52,11 +53,14 @@ theme_override_constants/separation = 8
 [node name="SaveButton" type="Button" parent="Margin/Root/Buttons"]
 unique_name_in_owner = true
 size_flags_horizontal = 3
+text = "保存"
 
 [node name="DiscardButton" type="Button" parent="Margin/Root/Buttons"]
 unique_name_in_owner = true
 size_flags_horizontal = 3
+text = "放弃"
 
 [node name="ReturnButton" type="Button" parent="Margin/Root/Buttons"]
 unique_name_in_owner = true
 size_flags_horizontal = 3
+text = "返回"

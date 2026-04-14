@@ -1,7 +1,8 @@
 using Godot;
+using TeikeibunDanmaku.Core.Blackboard;
 using TeikeibunDanmaku.Core.Condition;
-using TeikeibunDanmaku.RuleEditor.I18n;
 using TeikeibunDanmaku.RuleEditor.Model;
+using TeikeibunDanmaku.RuleEditor.Services;
 
 namespace TeikeibunDanmaku.RuleEditor;
 
@@ -14,11 +15,11 @@ public sealed partial class ConditionEditorDialog : PanelContainer
     private ItemList _childrenList = null!;
     private Label _statusLabel = null!;
 
+    private readonly ConditionSchemaService _schemaService = new();
     private ConditionDto _current = null!;
     private string _timepointId = string.Empty;
     private IReadOnlyList<int> _path = [];
-    private IReadOnlyList<string> _types = [];
-    private readonly Dictionary<string, IReadOnlyList<string>> _keysByType = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, IReadOnlyList<BoardFieldDescriptor>> _fieldsByType = new(StringComparer.Ordinal);
 
     public event Action<IReadOnlyList<int>, ConditionDto>? DoneRequested;
     public event Action? CancelRequested;
@@ -35,16 +36,6 @@ public sealed partial class ConditionEditorDialog : PanelContainer
         _childrenList = GetNode<ItemList>("%ChildrenList");
         _statusLabel = GetNode<Label>("%StatusLabel");
 
-        GetNode<Label>("%TypeLabel").Text = EditorLoc.T("condition.type");
-        GetNode<Label>("%KeyLabel").Text = EditorLoc.T("condition.key");
-        GetNode<Label>("%ValueLabel").Text = EditorLoc.T("condition.value");
-        GetNode<Label>("%ChildrenLabel").Text = EditorLoc.T("condition.children");
-        GetNode<Button>("%AddChildButton").Text = EditorLoc.T("condition.add_child");
-        GetNode<Button>("%EditChildButton").Text = EditorLoc.T("condition.edit_child");
-        GetNode<Button>("%RemoveChildButton").Text = EditorLoc.T("condition.remove_child");
-        GetNode<Button>("%DoneButton").Text = EditorLoc.T("common.done");
-        GetNode<Button>("%CancelButton").Text = EditorLoc.T("common.cancel");
-
         _typeSelect.ItemSelected += _ => RefreshVisibility();
         _childrenList.ItemActivated += index => EditChildRequested?.Invoke(_path, (int)index);
         GetNode<Button>("%AddChildButton").Pressed += () => AddChildRequested?.Invoke(_path);
@@ -59,22 +50,23 @@ public sealed partial class ConditionEditorDialog : PanelContainer
         IReadOnlyList<int> path,
         ConditionDto condition,
         IReadOnlyList<string> types,
-        Func<string, IReadOnlyList<string>> keyResolver,
         string status)
     {
         _timepointId = timepointId;
         _path = path.ToArray();
         _current = condition.Clone();
-        _types = types;
 
-        _pathLabel.Text = $"{EditorLoc.T("condition.path")}: {BuildPathText(_path)}";
+        _pathLabel.Text = $"条件路径: {BuildPathText(_path)}";
 
         _typeSelect.Clear();
-        _keysByType.Clear();
-        foreach (var type in _types)
+        _fieldsByType.Clear();
+
+        for (var i = 0; i < types.Count; i++)
         {
-            _typeSelect.AddItem(type);
-            _keysByType[type] = keyResolver(type);
+            var type = types[i];
+            _typeSelect.AddItem(_schemaService.GetConditionTypeDisplayName(type));
+            _typeSelect.SetItemMetadata(i, type);
+            _fieldsByType[type] = _schemaService.GetAllowedFieldDescriptors(_timepointId, type);
         }
 
         SelectType(_current.Type);
@@ -87,8 +79,8 @@ public sealed partial class ConditionEditorDialog : PanelContainer
 
     public ConditionDto GetCondition()
     {
-        var type = _typeSelect.GetItemText(_typeSelect.Selected);
-        if (type is ConditionType.And or ConditionType.Or)
+        var type = GetSelectedType();
+        if (type is ConditionType.CondAnd or ConditionType.CondOr)
         {
             return new ConditionDto
             {
@@ -97,7 +89,7 @@ public sealed partial class ConditionEditorDialog : PanelContainer
             };
         }
 
-        var key = _keySelect.ItemCount == 0 ? null : _keySelect.GetItemText(_keySelect.Selected);
+        var key = GetSelectedKey();
         return new ConditionDto
         {
             Type = type,
@@ -190,8 +182,8 @@ public sealed partial class ConditionEditorDialog : PanelContainer
 
     private void RefreshVisibility()
     {
-        var type = _typeSelect.GetItemText(_typeSelect.Selected);
-        var isLogic = type is ConditionType.And or ConditionType.Or;
+        var type = GetSelectedType();
+        var isLogic = type is ConditionType.CondAnd or ConditionType.CondOr;
 
         _keySelect.Visible = !isLogic;
         _valueInput.Visible = !isLogic;
@@ -211,7 +203,9 @@ public sealed partial class ConditionEditorDialog : PanelContainer
         for (var i = 0; i < children.Length; i++)
         {
             var child = children[i];
-            _childrenList.AddItem($"{i + 1}. {child.Type} ({child.Key ?? "-"})");
+            var typeName = _schemaService.GetConditionTypeDisplayName(child.Type);
+            var keyName = _schemaService.GetFieldDisplayName(_timepointId, child.Key);
+            _childrenList.AddItem($"{i + 1}. {typeName} ({(string.IsNullOrWhiteSpace(keyName) ? "-" : keyName)})");
         }
     }
 
@@ -219,7 +213,8 @@ public sealed partial class ConditionEditorDialog : PanelContainer
     {
         for (var i = 0; i < _typeSelect.ItemCount; i++)
         {
-            if (string.Equals(_typeSelect.GetItemText(i), type, StringComparison.Ordinal))
+            var metadata = _typeSelect.GetItemMetadata(i);
+            if (metadata.VariantType == Variant.Type.String && string.Equals(metadata.AsString(), type, StringComparison.Ordinal))
             {
                 _typeSelect.Select(i);
                 return;
@@ -232,14 +227,16 @@ public sealed partial class ConditionEditorDialog : PanelContainer
     private void RebuildKeyOptions(string type, string? preferredKey)
     {
         _keySelect.Clear();
-        if (!_keysByType.TryGetValue(type, out var keys))
+        if (!_fieldsByType.TryGetValue(type, out var fields))
         {
             return;
         }
 
-        for (var i = 0; i < keys.Count; i++)
+        for (var i = 0; i < fields.Count; i++)
         {
-            _keySelect.AddItem(keys[i]);
+            var field = fields[i];
+            _keySelect.AddItem(field.DisplayName);
+            _keySelect.SetItemMetadata(i, field.Name);
         }
 
         if (_keySelect.ItemCount == 0)
@@ -250,7 +247,8 @@ public sealed partial class ConditionEditorDialog : PanelContainer
         var selectedIndex = 0;
         for (var i = 0; i < _keySelect.ItemCount; i++)
         {
-            if (string.Equals(_keySelect.GetItemText(i), preferredKey, StringComparison.Ordinal))
+            var metadata = _keySelect.GetItemMetadata(i);
+            if (metadata.VariantType == Variant.Type.String && string.Equals(metadata.AsString(), preferredKey, StringComparison.Ordinal))
             {
                 selectedIndex = i;
                 break;
@@ -258,6 +256,28 @@ public sealed partial class ConditionEditorDialog : PanelContainer
         }
 
         _keySelect.Select(selectedIndex);
+    }
+
+    private string GetSelectedType()
+    {
+        if (_typeSelect.Selected < 0 || _typeSelect.Selected >= _typeSelect.ItemCount)
+        {
+            return string.Empty;
+        }
+
+        var metadata = _typeSelect.GetItemMetadata(_typeSelect.Selected);
+        return metadata.VariantType == Variant.Type.String ? metadata.AsString() : string.Empty;
+    }
+
+    private string? GetSelectedKey()
+    {
+        if (_keySelect.Selected < 0 || _keySelect.Selected >= _keySelect.ItemCount)
+        {
+            return null;
+        }
+
+        var metadata = _keySelect.GetItemMetadata(_keySelect.Selected);
+        return metadata.VariantType == Variant.Type.String ? metadata.AsString() : null;
     }
 
     private static string BuildPathText(IReadOnlyList<int> path)

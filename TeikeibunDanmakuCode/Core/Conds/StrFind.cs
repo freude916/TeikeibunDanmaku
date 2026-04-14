@@ -3,7 +3,7 @@ using TeikeibunDanmaku.Core.Blackboard;
 
 namespace TeikeibunDanmaku.Core.Condition;
 
-public sealed class FindCondition(BoardFieldDescriptor fieldDescriptor, string needle)
+public sealed class StrFind(BoardFieldDescriptor fieldDescriptor, string needle)
     : ICondition
 {
     private readonly BoardFieldDescriptor _fieldDescriptor = fieldDescriptor ?? throw new ArgumentNullException(nameof(fieldDescriptor));
@@ -24,7 +24,7 @@ public sealed class FindCondition(BoardFieldDescriptor fieldDescriptor, string n
     {
         return new ConditionDto
         {
-            Type = ConditionType.Find,
+            Type = ConditionType.StrFind,
             Key = FieldDescriptor.Name,
             Value = Needle
         };
@@ -33,9 +33,9 @@ public sealed class FindCondition(BoardFieldDescriptor fieldDescriptor, string n
 
 public sealed class FindConditionCodec : ConditionCodec
 {
-    public override string Type => ConditionType.Find;
+    public override string Type => ConditionType.StrFind;
 
-    public override FindCondition DeserializeDto(ConditionDto dto, Type stateType, ConditionDeserializer deserializer)
+    public override StrFind DeserializeDto(ConditionDto dto, Type stateType, ConditionDeserializer deserializer)
     {
         ArgumentNullException.ThrowIfNull(dto);
         _ = deserializer ?? throw new ArgumentNullException(nameof(deserializer));
@@ -52,10 +52,10 @@ public sealed class FindConditionCodec : ConditionCodec
 
         if (descriptor.ValueType != typeof(string))
         {
-            throw new JsonException($"Condition '{ConditionType.Find}' requires string key '{key}'.");
+            throw new JsonException($"Condition '{ConditionType.StrFind}' requires string key '{key}'.");
         }
 
-        return new FindCondition(descriptor, value);
+        return new StrFind(descriptor, value);
     }
 
     private static string GetStringValue(object? value, string key)

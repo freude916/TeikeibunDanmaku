@@ -1,6 +1,7 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat.History;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using TeikeibunDanmaku.Timepoints;
 
 namespace TeikeibunDanmaku.Detection.Combat;
 
@@ -23,7 +24,7 @@ public static class CombatCardPlayedDetection
 
         try
         {
-            // CardPlayDanmakuEngine.OnCardPlayed(__instance, cardPlay);
+            CardPlayedTimepoint.From(cardPlay).Publish();
         }
         catch (Exception ex)
         {

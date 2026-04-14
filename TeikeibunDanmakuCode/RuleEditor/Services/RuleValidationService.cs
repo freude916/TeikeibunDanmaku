@@ -85,7 +85,7 @@ public sealed class RuleValidationService
             return ValidationResult.Fail($"{path}.type.empty");
         }
 
-        if (condition.Type is ConditionType.And or ConditionType.Or)
+        if (condition.Type is ConditionType.CondAnd or ConditionType.CondOr)
         {
             var children = condition.Conditions?.ToArray() ?? [];
             if (children.Length == 0)

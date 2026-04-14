@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://bys8g3tm8ixjx"]
+[gd_scene load_steps=7 format=3 uid="uid://bys8g3tm8ixjx"]
 
 [ext_resource type="Script" uid="uid://cngeb1mjlg518" path="res://TeikeibunDanmakuCode/RuleEditor/RuleEditorRootView.cs" id="1"]
 [ext_resource type="PackedScene" path="res://TeikeibunDanmaku/scenes/Pages/RuleFilePage.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://TeikeibunDanmaku/scenes/Pages/RuleListPage.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://TeikeibunDanmaku/scenes/Pages/RuleDetailPage.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://TeikeibunDanmaku/scenes/Dialogs/UnsavedDialog.tscn" id="5"]
+[ext_resource type="Theme" path="res://TeikeibunDanmaku/scenes/Themes/RuleEditorTheme.tres" id="6"]
 
 [node name="RuleEditorRoot" type="Control"]
 process_mode = 3
@@ -16,6 +17,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 script = ExtResource("1")
+theme = ExtResource("6")
 
 [node name="Backdrop" type="ColorRect" parent="."]
 unique_name_in_owner = true

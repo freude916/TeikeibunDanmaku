@@ -33,6 +33,9 @@ public static class BoardStateRegistry
         if (getterMethod == null || declaringType == null)
             throw new InvalidOperationException($"Data field '{property.Name}' must have a public getter.");
 
+        var attribute = property.GetCustomAttribute<DataFieldAttribute>()
+                        ?? throw new InvalidOperationException($"Data field '{property.Name}' is missing DataFieldAttribute.");
+
         var stateParameter = Expression.Parameter(typeof(IBoardState), "state");
         var castedState = Expression.Convert(stateParameter, declaringType);
         var callGetter = Expression.Call(castedState, getterMethod);
@@ -42,6 +45,7 @@ public static class BoardStateRegistry
         return new BoardFieldDescriptor
         {
             Name = property.Name,
+            DisplayName = attribute.DisplayName,
             ValueType = property.PropertyType,
             PropertyInfo = property,
             Getter = getter

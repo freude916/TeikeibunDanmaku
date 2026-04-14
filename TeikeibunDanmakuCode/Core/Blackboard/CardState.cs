@@ -4,26 +4,26 @@ namespace TeikeibunDanmaku.Core.Blackboard;
 
 public class CardState: IBoardState
 {
-    [DataField] public required string ModelId { get; init; }
+    [DataField("卡牌ID")] public required string ModelId { get; init; }
     
-    [DataField] public required string Title { get; init; }
+    [DataField("卡牌名")] public required string Title { get; init; }
     
-    [DataField] public required bool CostsX { get; init; }
-    [DataField] public required int EnergyCost { get; init; }
+    [DataField("X费")] public required bool CostsX { get; init; }
+    [DataField("能量消耗")] public required int EnergyCost { get; init; }
     
-    [DataField] public required int EnergyEarned { get; init; }
+    [DataField("获得能量")] public required int EnergyEarned { get; init; }
     
-    [DataField] public required int HpLoss { get; init; }
+    [DataField("生命损失")] public required int HpLoss { get; init; }
     
-    [DataField] public required int Strength { get; init; }
+    [DataField("力量")] public required int Strength { get; init; }
     
-    [DataField] public required int Dexterity { get; init; }
+    [DataField("敏捷")] public required int Dexterity { get; init; }
     
-    [DataField] public required int Damage { get; init; }
+    [DataField("伤害")] public required int Damage { get; init; }
     
-    [DataField] public required int Block { get; init; }
+    [DataField("格挡")] public required int Block { get; init; }
     
-    [DataField] public required int Repeat { get; init; }
+    [DataField("多段")] public required int Repeat { get; init; }
     
 
     public static CardState FromCardModel(CardModel model)

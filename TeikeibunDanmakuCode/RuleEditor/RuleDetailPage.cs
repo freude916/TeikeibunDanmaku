@@ -1,8 +1,9 @@
 using Godot;
 using TeikeibunDanmaku.Core.Condition;
 using TeikeibunDanmaku.Core.Rules;
-using TeikeibunDanmaku.RuleEditor.I18n;
 using TeikeibunDanmaku.RuleEditor.Model;
+using TeikeibunDanmaku.RuleEditor.Services;
+using TeikeibunDanmaku.Timepoints;
 
 namespace TeikeibunDanmaku.RuleEditor;
 
@@ -16,6 +17,7 @@ public sealed partial class RuleDetailPage : PanelContainer
     private Label _statusLabel = null!;
 
     private ConditionDto _currentCondition = null!;
+    private readonly ConditionSchemaService _schemaService = new();
 
     public event Action<RuleDto>? DoneRequested;
     public event Action? CancelRequested;
@@ -30,21 +32,6 @@ public sealed partial class RuleDetailPage : PanelContainer
         _conditionSummary = GetNode<Label>("%ConditionSummaryLabel");
         _statusLabel = GetNode<Label>("%StatusLabel");
 
-        GetNode<Label>("%TitleLabel").Text = EditorLoc.T("detail.title");
-        GetNode<Label>("%RuleIdLabel").Text = EditorLoc.T("detail.rule_id");
-        GetNode<Label>("%TimepointLabel").Text = EditorLoc.T("detail.timepoint");
-        GetNode<Label>("%MessagesLabel").Text = EditorLoc.T("detail.messages");
-        _messageInput.PlaceholderText = EditorLoc.T("detail.message_placeholder");
-
-        GetNode<Button>("%AddMessageButton").Text = EditorLoc.T("detail.msg_add");
-        GetNode<Button>("%UpdateMessageButton").Text = EditorLoc.T("detail.msg_update");
-        GetNode<Button>("%RemoveMessageButton").Text = EditorLoc.T("detail.msg_remove");
-        GetNode<Button>("%MoveMsgUpButton").Text = EditorLoc.T("detail.msg_up");
-        GetNode<Button>("%MoveMsgDownButton").Text = EditorLoc.T("detail.msg_down");
-        GetNode<Button>("%EditConditionButton").Text = EditorLoc.T("detail.edit_condition");
-        GetNode<Button>("%DoneButton").Text = EditorLoc.T("common.done");
-        GetNode<Button>("%CancelButton").Text = EditorLoc.T("common.cancel");
-
         _messageInput.TextSubmitted += text => AddMessage(text);
         GetNode<Button>("%AddMessageButton").Pressed += () => AddMessage(_messageInput.Text);
         GetNode<Button>("%UpdateMessageButton").Pressed += UpdateSelectedMessage;
@@ -56,7 +43,7 @@ public sealed partial class RuleDetailPage : PanelContainer
         GetNode<Button>("%CancelButton").Pressed += () => CancelRequested?.Invoke();
     }
 
-    public void BeginEdit(RuleDto rule, IReadOnlyList<string> timepoints, string status)
+    public void BeginEdit(RuleDto rule, IReadOnlyList<TimepointDescriptor> timepoints, string status)
     {
         _ruleIdInput.Text = rule.RuleId;
         _timepointSelect.Clear();
@@ -64,8 +51,9 @@ public sealed partial class RuleDetailPage : PanelContainer
         var selectedIndex = 0;
         for (var i = 0; i < timepoints.Count; i++)
         {
-            _timepointSelect.AddItem(timepoints[i]);
-            if (string.Equals(timepoints[i], rule.Timepoint, StringComparison.Ordinal))
+            _timepointSelect.AddItem(timepoints[i].DisplayName);
+            _timepointSelect.SetItemMetadata(i, timepoints[i].Id);
+            if (string.Equals(timepoints[i].Id, rule.Timepoint, StringComparison.Ordinal))
             {
                 selectedIndex = i;
             }
@@ -94,9 +82,13 @@ public sealed partial class RuleDetailPage : PanelContainer
 
     public string GetSelectedTimepoint()
     {
-        return _timepointSelect.Selected >= 0
-            ? _timepointSelect.GetItemText(_timepointSelect.Selected)
-            : string.Empty;
+        if (_timepointSelect.Selected < 0 || _timepointSelect.Selected >= _timepointSelect.ItemCount)
+        {
+            return string.Empty;
+        }
+
+        var metadata = _timepointSelect.GetItemMetadata(_timepointSelect.Selected);
+        return metadata.VariantType == Variant.Type.String ? metadata.AsString() : string.Empty;
     }
 
     public void SetStatus(string status)
@@ -124,21 +116,23 @@ public sealed partial class RuleDetailPage : PanelContainer
 
     private void RebuildConditionSummary()
     {
-        _conditionSummary.Text = BuildConditionSummary(_currentCondition, 0);
+        _conditionSummary.Text = BuildConditionSummary(_currentCondition, 0, GetSelectedTimepoint());
     }
 
-    private static string BuildConditionSummary(ConditionDto condition, int depth)
+    private string BuildConditionSummary(ConditionDto condition, int depth, string timepointId)
     {
         var indent = new string(' ', depth * 2);
-        if (condition.Type is ConditionType.And or ConditionType.Or)
+        if (condition.Type is ConditionType.CondAnd or ConditionType.CondOr)
         {
             var children = condition.Conditions?.ToArray() ?? [];
-            var lines = new List<string> { $"{indent}{condition.Type.ToUpperInvariant()} ({children.Length})" };
-            lines.AddRange(children.Select(child => BuildConditionSummary(child, depth + 1)));
+            var lines = new List<string> { $"{indent}{_schemaService.GetConditionTypeDisplayName(condition.Type)} ({children.Length})" };
+            lines.AddRange(children.Select(child => BuildConditionSummary(child, depth + 1, timepointId)));
             return string.Join("\n", lines);
         }
 
-        return $"{indent}{condition.Type} key={condition.Key} value={condition.Value}";
+        var typeName = _schemaService.GetConditionTypeDisplayName(condition.Type);
+        var keyName = _schemaService.GetFieldDisplayName(timepointId, condition.Key);
+        return $"{indent}{typeName} key={keyName} value={condition.Value}";
     }
 
     private void AddMessage(string text)

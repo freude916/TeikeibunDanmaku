@@ -3,12 +3,12 @@ using TeikeibunDanmaku.Core.Blackboard;
 
 namespace TeikeibunDanmaku.Core.Condition;
 
-public sealed class AndCondition : ICondition
+public sealed class CondOr : ICondition
 {
     private readonly IReadOnlyList<ICondition> _conditions;
     public IReadOnlyList<ICondition> Conditions => _conditions;
 
-    public AndCondition(IReadOnlyList<ICondition> conditions)
+    public CondOr(IReadOnlyList<ICondition> conditions)
     {
         _conditions = conditions ?? throw new ArgumentNullException(nameof(conditions));
     }
@@ -17,24 +17,24 @@ public sealed class AndCondition : ICondition
     {
         ArgumentNullException.ThrowIfNull(state);
 
-        return _conditions.Count != 0 && _conditions.All(condition => condition.Evaluate(state));
+        return _conditions.Count != 0 && _conditions.Any(condition => condition.Evaluate(state));
     }
 
     public ConditionDto Serialize()
     {
         return new ConditionDto
         {
-            Type = ConditionType.And,
+            Type = ConditionType.CondOr,
             Conditions = _conditions.Select(condition => condition.Serialize())
         };
     }
 }
 
-public sealed class AndConditionCodec : ConditionCodec
+public sealed class OrConditionCodec : ConditionCodec
 {
-    public override string Type => ConditionType.And;
+    public override string Type => ConditionType.CondOr;
 
-    public override AndCondition DeserializeDto(ConditionDto dto, Type stateType, ConditionDeserializer deserializer)
+    public override CondOr DeserializeDto(ConditionDto dto, Type stateType, ConditionDeserializer deserializer)
     {
         ArgumentNullException.ThrowIfNull(dto);
         ArgumentNullException.ThrowIfNull(stateType);
@@ -44,6 +44,6 @@ public sealed class AndConditionCodec : ConditionCodec
             .Select(child => deserializer.DeserializeDto(child, stateType))
             .ToArray();
 
-        return new AndCondition(conditions);
+        return new CondOr(conditions);
     }
 }

@@ -7,6 +7,7 @@ namespace TeikeibunDanmaku.Timepoints;
 public abstract class Timepoint
 {
     public abstract string Id { get; }
+    public abstract string DisplayName { get; }
     public abstract IBoardState BoardState { get; }
     
     public abstract Type StateType { get; }
@@ -18,6 +19,8 @@ public abstract class Timepoint
         TimepointBus.Publish(this);
     }
 }
+
+public readonly record struct TimepointDescriptor(string Id, string DisplayName, Type StateType);
 
 public abstract class Timepoint<TState>: Timepoint where TState : IBoardState
 {

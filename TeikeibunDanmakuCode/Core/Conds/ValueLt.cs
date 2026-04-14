@@ -4,7 +4,7 @@ using TeikeibunDanmaku.Utils;
 
 namespace TeikeibunDanmaku.Core.Condition;
 
-public sealed class GtCondition(BoardFieldDescriptor fieldDescriptor, double expectedValue)
+public sealed class ValueLt(BoardFieldDescriptor fieldDescriptor, double expectedValue)
     : ICondition
 {
     private readonly BoardFieldDescriptor _fieldDescriptor = fieldDescriptor ?? throw new ArgumentNullException(nameof(fieldDescriptor));
@@ -22,25 +22,25 @@ public sealed class GtCondition(BoardFieldDescriptor fieldDescriptor, double exp
             return false;
         }
 
-        return actualNumber > ExpectedValue;
+        return actualNumber < ExpectedValue;
     }
 
     public ConditionDto Serialize()
     {
         return new ConditionDto
         {
-            Type = ConditionType.Gt,
+            Type = ConditionType.ValueLt,
             Key = FieldDescriptor.Name,
             Value = ExpectedValue
         };
     }
 }
 
-public sealed class GtConditionCodec : ConditionCodec
+public sealed class LtConditionCodec : ConditionCodec
 {
-    public override string Type => ConditionType.Gt;
+    public override string Type => ConditionType.ValueLt;
 
-    public override GtCondition DeserializeDto(ConditionDto dto, Type stateType, ConditionDeserializer deserializer)
+    public override ValueLt DeserializeDto(ConditionDto dto, Type stateType, ConditionDeserializer deserializer)
     {
         ArgumentNullException.ThrowIfNull(dto);
         _ = deserializer ?? throw new ArgumentNullException(nameof(deserializer));
@@ -57,7 +57,7 @@ public sealed class GtConditionCodec : ConditionCodec
 
         if (!TypeUtil.IsNumericType(descriptor.ValueType))
         {
-            throw new JsonException($"Condition '{ConditionType.Gt}' requires numeric key '{key}'.");
+            throw new JsonException($"Condition '{ConditionType.ValueLt}' requires numeric key '{key}'.");
         }
 
         if (!TryParseNumericAsDouble(value, out var expectedValue))
@@ -65,7 +65,7 @@ public sealed class GtConditionCodec : ConditionCodec
             throw new JsonException($"Value for key '{key}' must be numeric or numeric string.");
         }
 
-        return new GtCondition(descriptor, expectedValue);
+        return new ValueLt(descriptor, expectedValue);
     }
 
     private static bool TryParseNumericAsDouble(object value, out double result)

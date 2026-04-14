@@ -145,7 +145,7 @@ public sealed partial class RuleEditorRootView : Control
         _listPage.Visible = false;
         _detailPage.Visible = true;
 
-        _detailPage.BeginEdit(draft, TimepointCatalog.All, _status);
+        _detailPage.BeginEdit(draft, _schemaService.ListTimepoints(), _status);
     }
 
     private void OpenFile(string filePath)
@@ -188,7 +188,14 @@ public sealed partial class RuleEditorRootView : Control
     private void StartCreateRule()
     {
         _editingIndex = -1;
-        var timepoint = TimepointCatalog.All[0];
+        var timepoint = _schemaService.ListTimepoints().FirstOrDefault().Id;
+        if (string.IsNullOrWhiteSpace(timepoint))
+        {
+            _status = "未配置任何时间点。";
+            ShowRuleListPage();
+            return;
+        }
+
         var draft = new RuleDto
         {
             RuleId = GenerateRuleId(timepoint),
@@ -360,7 +367,6 @@ public sealed partial class RuleEditorRootView : Control
                 path,
                 node,
                 _schemaService.ListConditionTypes(),
-                type => _schemaService.GetAllowedKeys(_detailPage.GetSelectedTimepoint(), type),
                 _status);
         }
         catch (Exception ex)

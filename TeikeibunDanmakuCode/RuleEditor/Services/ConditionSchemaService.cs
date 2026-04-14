@@ -10,6 +10,21 @@ public sealed class ConditionSchemaService
     private readonly TimepointStateResolver _stateResolver = new();
     private readonly ConditionRegistry _registry = ConditionRegistry.CreateDefault();
 
+    public IReadOnlyList<TimepointDescriptor> ListTimepoints()
+    {
+        return _stateResolver.ListTimepoints();
+    }
+
+    public string GetTimepointDisplayName(string timepointId)
+    {
+        return _stateResolver.GetDisplayName(timepointId);
+    }
+
+    public string GetConditionTypeDisplayName(string conditionType)
+    {
+        return ConditionType.GetDisplayName(conditionType);
+    }
+
     public IReadOnlyList<string> ListConditionTypes()
     {
         return _registry.ListTypes();
@@ -17,22 +32,43 @@ public sealed class ConditionSchemaService
 
     public IReadOnlyList<string> GetAllowedKeys(string timepointId, string conditionType)
     {
+        var descriptors = GetAllowedFieldDescriptors(timepointId, conditionType);
+        return descriptors.Select(item => item.Name).ToArray();
+    }
+
+    public IReadOnlyList<BoardFieldDescriptor> GetAllowedFieldDescriptors(string timepointId, string conditionType)
+    {
         var stateType = _stateResolver.ResolveStateType(timepointId);
         var descriptors = BoardStateRegistry.GetFieldDescriptors(stateType);
 
-        IEnumerable<string> keys = conditionType switch
+        IEnumerable<BoardFieldDescriptor> fields = conditionType switch
         {
-            ConditionType.Lt or ConditionType.Gt => descriptors
+            ConditionType.ValueLt or ConditionType.ValueGt => descriptors
                 .Where(pair => TypeUtil.IsNumericType(pair.Value.ValueType))
-                .Select(pair => pair.Key),
-            ConditionType.Find => descriptors
+                .Select(pair => pair.Value),
+            ConditionType.StrFind => descriptors
                 .Where(pair => TypeUtil.GetNonNullableType(pair.Value.ValueType) == typeof(string))
-                .Select(pair => pair.Key),
-            ConditionType.Eq => descriptors.Keys,
+                .Select(pair => pair.Value),
+            ConditionType.Eq => descriptors.Values,
             _ => []
         };
 
-        return keys.OrderBy(key => key, StringComparer.OrdinalIgnoreCase).ToArray();
+        return fields
+            .OrderBy(field => field.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(field => field.Name, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    public string GetFieldDisplayName(string timepointId, string? key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return string.Empty;
+        }
+
+        var stateType = _stateResolver.ResolveStateType(timepointId);
+        var descriptors = BoardStateRegistry.GetFieldDescriptors(stateType);
+        return descriptors.TryGetValue(key, out var descriptor) ? descriptor.DisplayName : key;
     }
 
     public ConditionDto CreateDefaultLeaf(string timepointId)
@@ -48,7 +84,7 @@ public sealed class ConditionSchemaService
 
     public ConditionDto NormalizeNode(string timepointId, ConditionDto node)
     {
-        if (node.Type is ConditionType.And or ConditionType.Or)
+        if (node.Type is ConditionType.CondAnd or ConditionType.CondOr)
         {
             var children = node.Conditions?.ToArray() ?? [];
             if (children.Length == 0)
@@ -73,8 +109,8 @@ public sealed class ConditionSchemaService
         {
             value = node.Type switch
             {
-                ConditionType.Lt or ConditionType.Gt => "0",
-                ConditionType.Find => string.Empty,
+                ConditionType.ValueLt or ConditionType.ValueGt => "0",
+                ConditionType.StrFind => string.Empty,
                 _ => "0"
             };
         }

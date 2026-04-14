@@ -74,6 +74,9 @@
 
     <ItemGroup>
       <Content Include="Directory.Build.props" />
+      <Content Include="docs\patches.md" />
+      <Content Include="docs\think.md" />
+      <Content Include="docs\timepoint.md" />
       <Content Include="export_presets.cfg" />
     </ItemGroup>
 
