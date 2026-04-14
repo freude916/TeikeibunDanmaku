@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeikeibunDanmaku", "TeikeibunDanmaku.csproj", "{D43E5FBB-E171-4619-A81E-15276C3E6AA1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeikeibunDanmaku", "TeikeibunDanmaku.csproj", "{3557A435-45B0-4D24-AAEB-76F1D8F1F353}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,11 +9,11 @@ Global
 		ExportRelease|Any CPU = ExportRelease|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D43E5FBB-E171-4619-A81E-15276C3E6AA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D43E5FBB-E171-4619-A81E-15276C3E6AA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D43E5FBB-E171-4619-A81E-15276C3E6AA1}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
-		{D43E5FBB-E171-4619-A81E-15276C3E6AA1}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
-		{D43E5FBB-E171-4619-A81E-15276C3E6AA1}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
-		{D43E5FBB-E171-4619-A81E-15276C3E6AA1}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{3557A435-45B0-4D24-AAEB-76F1D8F1F353}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3557A435-45B0-4D24-AAEB-76F1D8F1F353}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3557A435-45B0-4D24-AAEB-76F1D8F1F353}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{3557A435-45B0-4D24-AAEB-76F1D8F1F353}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{3557A435-45B0-4D24-AAEB-76F1D8F1F353}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{3557A435-45B0-4D24-AAEB-76F1D8F1F353}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
 	EndGlobalSection
 EndGlobal

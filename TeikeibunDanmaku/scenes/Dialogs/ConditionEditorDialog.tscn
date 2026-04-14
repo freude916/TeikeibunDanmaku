@@ -1,0 +1,123 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://TeikeibunDanmakuCode/RuleEditor/ConditionEditorDialog.cs" id="1"]
+
+[node name="ConditionEditorDialog" type="PanelContainer"]
+script = ExtResource("1")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Backdrop" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.35)
+
+[node name="RootMargin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 120
+theme_override_constants/margin_top = 80
+theme_override_constants/margin_right = 120
+theme_override_constants/margin_bottom = 80
+
+[node name="Dialog" type="PanelContainer" parent="RootMargin"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Margin" type="MarginContainer" parent="RootMargin/Dialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Root" type="VBoxContainer" parent="RootMargin/Dialog/Margin"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="PathLabel" type="Label" parent="RootMargin/Dialog/Margin/Root"]
+unique_name_in_owner = true
+
+[node name="TypeRow" type="HBoxContainer" parent="RootMargin/Dialog/Margin/Root"]
+theme_override_constants/separation = 8
+[node name="TypeLabel" type="Label" parent="RootMargin/Dialog/Margin/Root/TypeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+[node name="TypeSelect" type="OptionButton" parent="RootMargin/Dialog/Margin/Root/TypeRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="KeyRow" type="HBoxContainer" parent="RootMargin/Dialog/Margin/Root"]
+theme_override_constants/separation = 8
+[node name="KeyLabel" type="Label" parent="RootMargin/Dialog/Margin/Root/KeyRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+[node name="KeySelect" type="OptionButton" parent="RootMargin/Dialog/Margin/Root/KeyRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="ValueRow" type="HBoxContainer" parent="RootMargin/Dialog/Margin/Root"]
+theme_override_constants/separation = 8
+[node name="ValueLabel" type="Label" parent="RootMargin/Dialog/Margin/Root/ValueRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+[node name="ValueInput" type="LineEdit" parent="RootMargin/Dialog/Margin/Root/ValueRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="ChildrenLabel" type="Label" parent="RootMargin/Dialog/Margin/Root"]
+unique_name_in_owner = true
+
+[node name="ChildrenList" type="ItemList" parent="RootMargin/Dialog/Margin/Root"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ChildButtonRow" type="HBoxContainer" parent="RootMargin/Dialog/Margin/Root"]
+unique_name_in_owner = true
+theme_override_constants/separation = 8
+[node name="AddChildButton" type="Button" parent="RootMargin/Dialog/Margin/Root/ChildButtonRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+[node name="EditChildButton" type="Button" parent="RootMargin/Dialog/Margin/Root/ChildButtonRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+[node name="RemoveChildButton" type="Button" parent="RootMargin/Dialog/Margin/Root/ChildButtonRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="ActionRow" type="HBoxContainer" parent="RootMargin/Dialog/Margin/Root"]
+theme_override_constants/separation = 8
+[node name="DoneButton" type="Button" parent="RootMargin/Dialog/Margin/Root/ActionRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+[node name="CancelButton" type="Button" parent="RootMargin/Dialog/Margin/Root/ActionRow"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="StatusLabel" type="Label" parent="RootMargin/Dialog/Margin/Root"]
+unique_name_in_owner = true
+autowrap_mode = 3

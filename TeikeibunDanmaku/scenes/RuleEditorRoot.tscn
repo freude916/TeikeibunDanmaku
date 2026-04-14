@@ -1,0 +1,112 @@
+[gd_scene load_steps=6 format=3 uid="uid://bys8g3tm8ixjx"]
+
+[ext_resource type="Script" uid="uid://cngeb1mjlg518" path="res://TeikeibunDanmakuCode/RuleEditor/RuleEditorRootView.cs" id="1"]
+[ext_resource type="PackedScene" path="res://TeikeibunDanmaku/scenes/Pages/RuleFilePage.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://TeikeibunDanmaku/scenes/Pages/RuleListPage.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://TeikeibunDanmaku/scenes/Pages/RuleDetailPage.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://TeikeibunDanmaku/scenes/Dialogs/UnsavedDialog.tscn" id="5"]
+
+[node name="RuleEditorRoot" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="RootMargin" type="MarginContainer" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 30
+
+[node name="MainPanel" type="PanelContainer" parent="RootMargin"]
+custom_minimum_size = Vector2(980, 620)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ContentMargin" type="MarginContainer" parent="RootMargin/MainPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
+
+[node name="Pages" type="Control" parent="RootMargin/MainPanel/ContentMargin"]
+layout_mode = 2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FilePage" parent="RootMargin/MainPanel/ContentMargin/Pages" instance=ExtResource("2")]
+unique_name_in_owner = true
+layout_mode = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ListPage" parent="RootMargin/MainPanel/ContentMargin/Pages" instance=ExtResource("3")]
+unique_name_in_owner = true
+layout_mode = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DetailPage" parent="RootMargin/MainPanel/ContentMargin/Pages" instance=ExtResource("4")]
+unique_name_in_owner = true
+visible = true
+custom_minimum_size = Vector2(800, 600)
+layout_mode = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DialogLayer" type="Control" parent="."]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="UnsavedDialog" parent="DialogLayer" instance=ExtResource("5")]
+unique_name_in_owner = true
+layout_mode = 0
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 640.0
+offset_bottom = 220.0
+grow_horizontal = 1
+grow_vertical = 1

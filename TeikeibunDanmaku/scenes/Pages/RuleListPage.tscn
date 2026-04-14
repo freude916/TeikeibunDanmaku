@@ -1,0 +1,88 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://TeikeibunDanmakuCode/RuleEditor/RuleListPage.cs" id="1"]
+
+[node name="RuleListPage" type="PanelContainer"]
+script = ExtResource("1")
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Root" type="VBoxContainer" parent="Margin"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="FileLabel" type="Label" parent="Margin/Root"]
+unique_name_in_owner = true
+autowrap_mode = 3
+
+[node name="RuleList" type="ItemList" parent="Margin/Root"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Row1" type="HBoxContainer" parent="Margin/Root"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="AddButton" type="Button" parent="Margin/Root/Row1"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="EditButton" type="Button" parent="Margin/Root/Row1"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="DeleteButton" type="Button" parent="Margin/Root/Row1"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="MoveUpButton" type="Button" parent="Margin/Root/Row1"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="MoveDownButton" type="Button" parent="Margin/Root/Row1"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="Row2" type="HBoxContainer" parent="Margin/Root"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="SaveButton" type="Button" parent="Margin/Root/Row2"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="SwitchFileButton" type="Button" parent="Margin/Root/Row2"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="CloseButton" type="Button" parent="Margin/Root/Row2"]
+unique_name_in_owner = true
+size_flags_horizontal = 3
+
+[node name="StatusLabel" type="Label" parent="Margin/Root"]
+unique_name_in_owner = true
+autowrap_mode = 3
