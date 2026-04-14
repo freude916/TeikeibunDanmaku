@@ -2,6 +2,7 @@ using TeikeibunDanmaku.Core.Rules;
 using TeikeibunDanmaku.Io;
 using TeikeibunDanmaku.Timepoints;
 using TeikeibunDanmaku.Utils;
+using TeikeibunDanmaku.Core.Blackboard;
 
 namespace TeikeibunDanmaku.Core;
 
@@ -55,12 +56,15 @@ public static class RuleRuntime
 
     public static IReadOnlyList<Rule> LoadRulesFromDefaultDirectory()
     {
+        CardArchetypeCatalog.ReloadFromDirectory(RulesDirectoryPath);
         return RuleJsoncIo.ImportFromDirectory(RulesDirectoryPath, StateResolver);
     }
 
     public static IReadOnlyList<Rule> LoadRulesFromFile(string filePath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        var directoryPath = Path.GetDirectoryName(filePath);
+        CardArchetypeCatalog.ReloadFromDirectory(string.IsNullOrWhiteSpace(directoryPath) ? RulesDirectoryPath : directoryPath);
         return RuleJsoncIo.ImportFromFile(filePath, StateResolver);
     }
 
@@ -72,7 +76,7 @@ public static class RuleRuntime
         MainFile.Logger.Info($"Reloaded {rules.Count} rules from '{filePath}'.");
     }
 
-    public static void ExportConfiguredRulesToDefaultFile(string fileName = "rules.export.jsonc")
+    public static void ExportConfiguredRulesToDefaultFile(string fileName = "rules.export.danmu.jsonc")
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
         var outputPath = Path.Combine(RulesDirectoryPath, fileName);

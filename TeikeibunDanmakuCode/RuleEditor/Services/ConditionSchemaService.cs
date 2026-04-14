@@ -44,7 +44,7 @@ public sealed class ConditionSchemaService
         IEnumerable<BoardFieldDescriptor> fields = conditionType switch
         {
             ConditionType.ValueLt or ConditionType.ValueGt => descriptors
-                .Where(pair => TypeUtil.IsNumericType(pair.Value.ValueType))
+                .Where(pair => TypeUtil.IsNumericType(pair.Value.ValueType) || TypeUtil.IsStringEnumerableType(pair.Value.ValueType))
                 .Select(pair => pair.Value),
             ConditionType.StrFind => descriptors
                 .Where(pair => TypeUtil.GetNonNullableType(pair.Value.ValueType) == typeof(string))
@@ -110,9 +110,22 @@ public sealed class ConditionSchemaService
         var value = node.Value;
         if (value == null)
         {
+            var descriptorType = ResolveSelectedValueType(timepointId, key);
             value = node.Type switch
             {
+                ConditionType.ValueLt or ConditionType.ValueGt
+                    when descriptorType != null && TypeUtil.IsStringEnumerableType(descriptorType) => new Dictionary<string, object?>
+                    {
+                        ["item"] = string.Empty,
+                        ["count"] = 0
+                    },
                 ConditionType.ValueLt or ConditionType.ValueGt => "0",
+                ConditionType.Eq
+                    when descriptorType != null && TypeUtil.IsStringEnumerableType(descriptorType) => new Dictionary<string, object?>
+                    {
+                        ["item"] = string.Empty,
+                        ["count"] = 0
+                    },
                 ConditionType.StrFind => string.Empty,
                 ConditionType.ListContains => string.Empty,
                 _ => "0"
@@ -125,5 +138,17 @@ public sealed class ConditionSchemaService
             Key = key,
             Value = value
         };
+    }
+
+    private Type? ResolveSelectedValueType(string timepointId, string? key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return null;
+        }
+
+        var stateType = _stateResolver.ResolveStateType(timepointId);
+        var descriptors = FieldDescriptorResolver.GetFieldDescriptors(stateType);
+        return descriptors.TryGetValue(key, out var descriptor) ? descriptor.ValueType : null;
     }
 }

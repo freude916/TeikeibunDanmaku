@@ -17,9 +17,12 @@ public sealed class RunStartedState : IBoardState
             throw new InvalidOperationException("RunState.Players is empty.");
 
         var characterName = player.Character.Title.GetFormattedText();
+        
         if (string.IsNullOrWhiteSpace(characterName))
             characterName = player.Character.Id.Entry;
-
+        
+        MainFile.Logger.Info($"Player {characterName} began a {runState.AscensionLevel} level.");
+        
         return new RunStartedState
         {
             CharacterName = characterName,

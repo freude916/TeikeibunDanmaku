@@ -2,6 +2,7 @@ using System.Collections;
 using System.Reflection;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Commands;
 using TeikeibunDanmaku.Timepoints;
 
 namespace TeikeibunDanmaku.Detection.Combat;
@@ -120,14 +121,14 @@ public static class CombatRoomEnteredDetection
 
     private static object? GetMemberValue(object target, string memberName)
     {
-        const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         var targetType = target.GetType();
 
-        var prop = targetType.GetProperty(memberName, Flags);
+        var prop = targetType.GetProperty(memberName, flags);
         if (prop != null)
             return prop.GetValue(target);
 
-        var field = targetType.GetField(memberName, Flags);
+        var field = targetType.GetField(memberName, flags);
         return field?.GetValue(target);
     }
 }

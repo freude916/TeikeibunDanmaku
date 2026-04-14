@@ -1,5 +1,6 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using TeikeibunDanmaku.Core.Rules;
 using TeikeibunDanmaku.Timepoints;
@@ -8,6 +9,8 @@ namespace TeikeibunDanmaku.Io;
 
 public static class RuleJsoncIo
 {
+    public const string RuleFileSuffix = ".danmu.jsonc";
+
     #region Json Options
     private static readonly JsonDocumentOptions JsoncReadOptions = new()
     {
@@ -23,7 +26,7 @@ public static class RuleJsoncIo
     #endregion
 
     #region File Discovery
-    public static IReadOnlyList<string> ListJsoncFiles(string rulesDirectoryPath)
+    public static IReadOnlyList<string> ListRuleFiles(string rulesDirectoryPath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(rulesDirectoryPath);
 
@@ -33,7 +36,7 @@ public static class RuleJsoncIo
         }
 
         return Directory
-            .EnumerateFiles(rulesDirectoryPath, "*.jsonc", SearchOption.TopDirectoryOnly)
+            .EnumerateFiles(rulesDirectoryPath, "*" + RuleFileSuffix, SearchOption.TopDirectoryOnly)
             .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
@@ -46,7 +49,7 @@ public static class RuleJsoncIo
         ArgumentNullException.ThrowIfNull(resolver);
 
         var deserializer = new RuleDeserializer(resolver);
-        var files = ListJsoncFiles(rulesDirectoryPath);
+        var files = ListRuleFiles(rulesDirectoryPath);
 
         var rules = new List<Rule>();
         foreach (var filePath in files)
@@ -93,12 +96,13 @@ public static class RuleJsoncIo
         }
 
         using var document = JsonDocument.Parse(content, JsoncReadOptions);
-        if (document.RootElement.ValueKind != JsonValueKind.Array)
+        if (document.RootElement.ValueKind != JsonValueKind.Object)
         {
             throw new JsonException("Invalid Rule Jsonc file");
         }
 
-        return [.. document.RootElement.EnumerateArray().Select(DeserializeRuleDto)];
+        var dto = DeserializeDocument(document.RootElement);
+        return dto.Rules;
     }
     #endregion
 
@@ -114,9 +118,13 @@ public static class RuleJsoncIo
             Directory.CreateDirectory(directoryPath);
         }
 
-        var payload = rules.Select(rule => rule.Serialize()).ToArray();
+        var payload = new RuleJsoncDocumentDto
+        {
+            Version = 1,
+            Rules = [.. rules.Select(rule => rule.Serialize())]
+        };
         var json = JsonSerializer.Serialize(payload, JsonWriteOptions);
-        var fileContent = "// TeikeibunDanmaku rules (.jsonc)\n" + json + Environment.NewLine;
+        var fileContent = "// TeikeibunDanmaku rules (.danmu.jsonc)\n" + json + Environment.NewLine;
         File.WriteAllText(outputPath, fileContent);
     }
 
@@ -131,8 +139,13 @@ public static class RuleJsoncIo
             Directory.CreateDirectory(directoryPath);
         }
 
-        var json = JsonSerializer.Serialize(rules, JsonWriteOptions);
-        var fileContent = "// TeikeibunDanmaku rules (.jsonc)\n" + json + Environment.NewLine;
+        var payload = new RuleJsoncDocumentDto
+        {
+            Version = 1,
+            Rules = [.. rules]
+        };
+        var json = JsonSerializer.Serialize(payload, JsonWriteOptions);
+        var fileContent = "// TeikeibunDanmaku rules (.danmu.jsonc)\n" + json + Environment.NewLine;
         File.WriteAllText(outputPath, fileContent);
     }
     #endregion
@@ -147,15 +160,25 @@ public static class RuleJsoncIo
         }
         
         using var document = JsonDocument.Parse(content, JsoncReadOptions);
-        return document.RootElement.ValueKind != JsonValueKind.Array ? 
+        return document.RootElement.ValueKind != JsonValueKind.Object ? 
             throw new JsonException("Invalid Rule Jsonc file") : 
-            [.. document.RootElement.EnumerateArray().Select(deserializer.DeserializeJson)];
+            [.. DeserializeDocument(document.RootElement).Rules.Select(rule => deserializer.DeserializeDto(rule))];
     }
 
-    private static RuleDto DeserializeRuleDto(JsonElement element)
+    private static RuleJsoncDocumentDto DeserializeDocument(JsonElement element)
     {
-        return JsonSerializer.Deserialize<RuleDto>(element.GetRawText())
-               ?? throw new JsonException("Failed to deserialize RuleDto.");
+        var document = JsonSerializer.Deserialize<RuleJsoncDocumentDto>(element.GetRawText())
+                       ?? throw new JsonException("Failed to deserialize rule document.");
+        return document.Rules == null ? throw new JsonException("Property 'rules' cannot be null.") : document;
     }
     #endregion
+
+    private sealed class RuleJsoncDocumentDto
+    {
+        [JsonPropertyName("version")]
+        public int Version { get; init; } = 1;
+
+        [JsonPropertyName("rules")]
+        public required RuleDto[] Rules { get; init; }
+    }
 }

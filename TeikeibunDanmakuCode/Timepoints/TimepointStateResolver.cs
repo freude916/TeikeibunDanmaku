@@ -8,7 +8,11 @@ public sealed class TimepointStateResolver
     [
         new(RunStartedTimepoint.TimepointId, RunStartedTimepoint.TimepointDisplayName, typeof(RunStartedState)),
         new(RewardSeenTimepoint.TimepointId, RewardSeenTimepoint.TimepointDisplayName, typeof(CardState)),
+        new(RewardOpenTimepoint.TimepointId, RewardOpenTimepoint.TimepointDisplayName, typeof(CardPoolOpenState)),
         new(ShopSeenTimepoint.TimepointId, ShopSeenTimepoint.TimepointDisplayName, typeof(CardState)),
+        new(ShopOpenTimepoint.TimepointId, ShopOpenTimepoint.TimepointDisplayName, typeof(CardPoolOpenState)),
+        new(DeckAddTimepoint.TimepointId, DeckAddTimepoint.TimepointDisplayName, typeof(CardState)),
+        new(RestOpenedTimepoint.TimepointId, RestOpenedTimepoint.TimepointDisplayName, typeof(RestOpenedState)),
         new(EventSeenTimepoint.TimepointId, EventSeenTimepoint.TimepointDisplayName, typeof(EventState)),
         new(CardPlayedTimepoint.TimepointId, CardPlayedTimepoint.TimepointDisplayName, typeof(CardPlayState)),
         new(CombatRoomEnteredTimepoint.TimepointId, CombatRoomEnteredTimepoint.TimepointDisplayName, typeof(CombatRoomEnteredState))

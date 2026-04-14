@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Text.Json;
 using TeikeibunDanmaku.Core.Blackboard;
 using TeikeibunDanmaku.Utils;
@@ -41,11 +42,64 @@ public sealed class EqCondition(BoardFieldDescriptor fieldDescriptor, object? ex
     }
 }
 
+public sealed class EqListCountCondition(BoardFieldDescriptor fieldDescriptor, string item, double expectedCount)
+    : ICondition
+{
+    private const double Epsilon = 1e-9;
+    private readonly BoardFieldDescriptor _fieldDescriptor = fieldDescriptor ?? throw new ArgumentNullException(nameof(fieldDescriptor));
+    private readonly string _item = item ?? throw new ArgumentNullException(nameof(item));
+
+    public BoardFieldDescriptor FieldDescriptor => _fieldDescriptor;
+    public string Item => _item;
+    public double ExpectedCount => expectedCount;
+
+    public bool Evaluate(IBoardState state)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        var actualCount = CountMatches(_fieldDescriptor.Getter(state), _item);
+        return Math.Abs(actualCount - ExpectedCount) <= Epsilon;
+    }
+
+    public ConditionDto Serialize()
+    {
+        return new ConditionDto
+        {
+            Type = ConditionType.Eq,
+            Key = FieldDescriptor.Name,
+            Value = new Dictionary<string, object?>
+            {
+                ["item"] = Item,
+                ["count"] = ExpectedCount
+            }
+        };
+    }
+
+    private static int CountMatches(object? value, string item)
+    {
+        if (value is IEnumerable<string> stringEnumerable)
+            return stringEnumerable.Count(entry => string.Equals(entry, item, StringComparison.Ordinal));
+
+        if (value is IEnumerable enumerable)
+        {
+            var count = 0;
+            foreach (var entry in enumerable)
+            {
+                if (entry is string text && string.Equals(text, item, StringComparison.Ordinal))
+                    count++;
+            }
+
+            return count;
+        }
+
+        return 0;
+    }
+}
+
 public sealed class EqConditionCodec : ConditionCodec
 {
     public override string Type => ConditionType.Eq;
 
-    public override EqCondition DeserializeDto(ConditionDto dto, Type stateType, ConditionDeserializer deserializer)
+    public override ICondition DeserializeDto(ConditionDto dto, Type stateType, ConditionDeserializer deserializer)
     {
         ArgumentNullException.ThrowIfNull(dto);
         ArgumentNullException.ThrowIfNull(stateType);
@@ -58,6 +112,12 @@ public sealed class EqConditionCodec : ConditionCodec
         if (!descriptors.TryGetValue(key, out var descriptor))
         {
             throw new JsonException($"Condition key '{key}' was not found in state type '{stateType.Name}'.");
+        }
+
+        if (TypeUtil.IsStringEnumerableType(descriptor.ValueType))
+        {
+            var (item, count) = ParseListCountValue(value, key);
+            return new EqListCountCondition(descriptor, item, count);
         }
 
         var expectedValue = ParseExpectedValue(value, descriptor.ValueType, key);
@@ -150,5 +210,45 @@ public sealed class EqConditionCodec : ConditionCodec
         {
             throw new JsonException($"Failed to deserialize value for key '{key}' as '{nonNullableType.Name}'.", ex);
         }
+    }
+
+    private static (string Item, double Count) ParseListCountValue(object? value, string key)
+    {
+        if (value is null)
+            throw new JsonException($"Value for key '{key}' must be an object with properties 'item' and 'count'.");
+
+        if (value is JsonElement element)
+        {
+            if (element.ValueKind != JsonValueKind.Object)
+                throw new JsonException($"Value for key '{key}' must be an object with properties 'item' and 'count'.");
+
+            var item = element.TryGetProperty("item", out var itemElement) && itemElement.ValueKind == JsonValueKind.String
+                ? itemElement.GetString()
+                : null;
+
+            if (string.IsNullOrWhiteSpace(item))
+                throw new JsonException($"Value for key '{key}' requires non-empty string property 'item'.");
+
+            if (!element.TryGetProperty("count", out var countElement) ||
+                !TypeUtil.TryParseNumericJsonAsDouble(countElement, out var countFromJson))
+            {
+                throw new JsonException($"Value for key '{key}' requires numeric property 'count'.");
+            }
+
+            return (item, countFromJson);
+        }
+
+        if (value is IDictionary<string, object?> dictionary)
+        {
+            if (!dictionary.TryGetValue("item", out var rawItem) || rawItem is not string item || string.IsNullOrWhiteSpace(item))
+                throw new JsonException($"Value for key '{key}' requires non-empty string property 'item'.");
+
+            if (!dictionary.TryGetValue("count", out var rawCount) || !TypeUtil.TryConvertNumericObjectToDouble(rawCount, out var count))
+                throw new JsonException($"Value for key '{key}' requires numeric property 'count'.");
+
+            return (item, count);
+        }
+
+        throw new JsonException($"Value for key '{key}' must be an object with properties 'item' and 'count'.");
     }
 }

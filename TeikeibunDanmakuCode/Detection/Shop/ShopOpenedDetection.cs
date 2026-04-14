@@ -28,6 +28,8 @@ public static class ShopOpenedDetection
                 .OfType<CardModel>()
                 .ToList();
 
+            ShopOpenTimepoint.FromCards(cards).Publish();
+
             foreach (var card in cards)
             {
                 ShopSeenTimepoint.From(card).Publish();

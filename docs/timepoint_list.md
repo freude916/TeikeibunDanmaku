@@ -2,13 +2,28 @@
 
 本文基于 `TeikeibunDanmakuCode/Timepoints/TimepointStateResolver.cs` 当前注册内容整理。
 
+## 长期字段（LSFR）
+
+来源：`TeikeibunDanmakuCode/Core/Blackboard/LongStateFieldRegistry.cs`。
+
+| 外部 Key               | 类型    | DataField 显示名 |
+|----------------------|-------|---------------|
+| `run.player_hp`      | `int` | 玩家血量          |
+| `run.player_gold`    | `int` | 玩家金币          |
+| `run.player_deck_size` | `int` | 牌组数量          |
+| `run.player_deck` | `IReadOnlyList<string>` | 牌组列表 |
+| `run.player_deck_archetype_table` | `IReadOnlyDictionary<string, int>` | 牌组流派表 |
+| `run.player_relics` | `IReadOnlyList<string>` | 遗物列表 |
+
 ## 总览
 
 | Timepoint ID          | 显示名    | 对应 State                 |
 |-----------------------|--------|--------------------------|
 | `run.started`         | 开始游戏   | `RunStartedState`        |
 | `reward.seen`         | 卡牌奖励出现 | `CardState`              |
+| `reward.open`         | 卡牌奖励打开 | `CardPoolOpenState`      |
 | `shop.seen`           | 商店卡牌出现 | `CardState`              |
+| `shop.open`           | 商店打开   | `CardPoolOpenState`      |
 | `event.seen`          | 事件出现   | `EventState`             |
 | `combat.card_played`  | 战斗出牌完成 | `CardPlayState`          |
 | `combat.room_entered` | 进入战斗房间 | `CombatRoomEnteredState` |
@@ -37,6 +52,15 @@
 | `Damage`       | `int`    | 伤害            |
 | `Block`        | `int`    | 格挡            |
 | `Repeat`       | `int`    | 多段            |
+| `IsTerminal`   | `bool`   | 是否终端          |
+| `Archetypes`   | `IReadOnlyList<string>` | 流派 |
+
+### CardPoolOpenState（`reward.open`、`shop.open`）
+
+| 字段名            | 类型                      | DataField 显示名 |
+|----------------|-------------------------|---------------|
+| `TerminalCount` | `int`                  | 终端数量          |
+| `Archetypes`    | `IReadOnlyList<string>` | 流派列表          |
 
 ### EventState（`event.seen`）
 

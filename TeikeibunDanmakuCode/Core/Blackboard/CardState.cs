@@ -24,11 +24,16 @@ public class CardState: IBoardState
     [DataField("格挡")] public required int Block { get; init; }
     
     [DataField("多段")] public required int Repeat { get; init; }
+
+    [DataField("是否终端")] public required bool IsTerminal { get; init; }
+
+    [DataField("流派")] public required IReadOnlyList<string> Archetypes { get; init; }
     
 
     public static CardState FromCardModel(CardModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
+        var archetypeProfile = CardArchetypeCatalog.Resolve(model);
         
         return new CardState()
         {
@@ -43,6 +48,8 @@ public class CardState: IBoardState
             Damage = model.DynamicVars.ContainsKey("Damage") ? model.DynamicVars.Damage.IntValue : 0,
             Block = model.DynamicVars.ContainsKey("Block") ? model.DynamicVars.Block.IntValue : 0,
             Repeat = model.DynamicVars.ContainsKey("Repeat") ? model.DynamicVars.Repeat.IntValue : 1,
+            IsTerminal = archetypeProfile.IsTerminal,
+            Archetypes = archetypeProfile.Archetypes
         };
     }
 }

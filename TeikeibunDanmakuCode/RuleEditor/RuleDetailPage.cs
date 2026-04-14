@@ -1,4 +1,5 @@
 using Godot;
+using System.Text.Json;
 using TeikeibunDanmaku.Core.Message;
 using TeikeibunDanmaku.Core.Condition;
 using TeikeibunDanmaku.Core.Rules;
@@ -143,7 +144,32 @@ public sealed partial class RuleDetailPage : PanelContainer
 
         var typeName = _schemaService.GetConditionTypeDisplayName(condition.Type);
         var keyName = _schemaService.GetFieldDisplayName(timepointId, condition.Key);
-        return $"{indent}{typeName} key={keyName} value={condition.Value}";
+        return $"{indent}{typeName} key={keyName} value={FormatConditionValue(condition.Value)}";
+    }
+
+    private static string FormatConditionValue(object? value)
+    {
+        if (value is null)
+            return string.Empty;
+
+        if (value is JsonElement element && element.ValueKind == JsonValueKind.Object)
+        {
+            var item = element.TryGetProperty("item", out var itemElement) && itemElement.ValueKind == JsonValueKind.String
+                ? itemElement.GetString() ?? string.Empty
+                : string.Empty;
+            var count = element.TryGetProperty("count", out var countElement) ? countElement.GetRawText() : string.Empty;
+            if (!string.IsNullOrWhiteSpace(item) || !string.IsNullOrWhiteSpace(count))
+                return $"item={item}, count={count}";
+        }
+
+        if (value is IDictionary<string, object?> dict &&
+            dict.TryGetValue("item", out var rawItem) &&
+            dict.TryGetValue("count", out var rawCount))
+        {
+            return $"item={rawItem}, count={rawCount}";
+        }
+
+        return value.ToString() ?? string.Empty;
     }
 
     private void AddMessage(string text)

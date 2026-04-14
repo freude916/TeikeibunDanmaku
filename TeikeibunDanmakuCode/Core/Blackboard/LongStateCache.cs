@@ -10,6 +10,9 @@ public static class LongStateCache
     private static int _runPlayerHp;
     private static int _runPlayerGold;
     private static int _runPlayerDeckSize;
+    private static string[] _runPlayerDeck = [];
+    private static Dictionary<string, int> _runPlayerDeckArchetypeTable = new(StringComparer.Ordinal);
+    private static string[] _runPlayerRelics = [];
 
     public static int RunPlayerHp
     {
@@ -38,6 +41,33 @@ public static class LongStateCache
         }
     }
 
+    public static IReadOnlyList<string> RunPlayerDeck
+    {
+        get
+        {
+            lock (Gate)
+                return [.. _runPlayerDeck];
+        }
+    }
+
+    public static IReadOnlyDictionary<string, int> RunPlayerDeckArchetypeTable
+    {
+        get
+        {
+            lock (Gate)
+                return new Dictionary<string, int>(_runPlayerDeckArchetypeTable, StringComparer.Ordinal);
+        }
+    }
+
+    public static IReadOnlyList<string> RunPlayerRelics
+    {
+        get
+        {
+            lock (Gate)
+                return [.. _runPlayerRelics];
+        }
+    }
+
     public static void Reset()
     {
         lock (Gate)
@@ -45,6 +75,9 @@ public static class LongStateCache
             _runPlayerHp = 0;
             _runPlayerGold = 0;
             _runPlayerDeckSize = 0;
+            _runPlayerDeck = [];
+            _runPlayerDeckArchetypeTable = new Dictionary<string, int>(StringComparer.Ordinal);
+            _runPlayerRelics = [];
         }
     }
 
@@ -64,13 +97,19 @@ public static class LongStateCache
     {
         var hp = ReadInt(player, "CurrentHp");
         var gold = ReadInt(player, "Gold");
-        var deckSize = ReadDeckSize(player);
+        var deckEntries = ReadDeckEntries(player);
+        var deckSize = deckEntries.Count;
+        var deckArchetypeTable = BuildDeckArchetypeTable(deckEntries);
+        var relicEntries = ReadRelicEntries(player);
 
         lock (Gate)
         {
             _runPlayerHp = hp;
             _runPlayerGold = gold;
             _runPlayerDeckSize = deckSize;
+            _runPlayerDeck = [.. deckEntries.Select(entry => entry.DisplayName)];
+            _runPlayerDeckArchetypeTable = deckArchetypeTable;
+            _runPlayerRelics = [.. relicEntries];
         }
     }
 
@@ -102,29 +141,92 @@ public static class LongStateCache
         return null;
     }
 
-    private static int ReadDeckSize(object? player)
+    private static List<CardEntrySnapshot> ReadDeckEntries(object? player)
     {
         if (player == null)
-            return 0;
+            return [];
 
         var playerType = player.GetType();
         var deck = playerType.GetProperty("Deck")?.GetValue(player) ??
                    playerType.GetProperty("MasterDeck")?.GetValue(player);
 
         if (deck == null)
-            return 0;
+            return [];
 
-        var countProperty = deck.GetType().GetProperty("Count");
-        if (countProperty?.GetValue(deck) is int count)
-            return count;
+        if (deck is not IEnumerable enumerable)
+            return [];
 
-        if (deck is ICollection collection)
-            return collection.Count;
+        var cards = new List<CardEntrySnapshot>();
+        foreach (var entry in enumerable)
+        {
+            if (entry == null)
+                continue;
 
-        if (deck is IEnumerable enumerable)
-            return enumerable.Cast<object>().Count();
+            var modelId = ReadIdEntry(entry);
+            var title = ReadStringProperty(entry, "Title")
+                        ?? ReadLocalizedText(entry, "TitleLocString");
 
-        return 0;
+            if (string.IsNullOrWhiteSpace(modelId) && string.IsNullOrWhiteSpace(title))
+                continue;
+
+            var displayName = !string.IsNullOrWhiteSpace(modelId) ? modelId!.Trim() : title!.Trim();
+            cards.Add(new CardEntrySnapshot(modelId?.Trim(), title?.Trim(), displayName));
+        }
+
+        return cards;
+    }
+
+    private static List<string> ReadRelicEntries(object? player)
+    {
+        if (player == null)
+            return [];
+
+        var relics = player.GetType().GetProperty("Relics")?.GetValue(player);
+        if (relics is not IEnumerable enumerable)
+            return [];
+
+        var result = new List<string>();
+        foreach (var entry in enumerable)
+        {
+            if (entry == null)
+                continue;
+
+            var id = ReadIdEntry(entry);
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                result.Add(id.Trim());
+                continue;
+            }
+
+            var title = ReadStringProperty(entry, "Title")
+                        ?? ReadLocalizedText(entry, "TitleLocString")
+                        ?? ReadStringProperty(entry, "Name");
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                result.Add(title.Trim());
+            }
+        }
+
+        return result;
+    }
+
+    private static Dictionary<string, int> BuildDeckArchetypeTable(IEnumerable<CardEntrySnapshot> entries)
+    {
+        var table = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var entry in entries)
+        {
+            var profile = CardArchetypeCatalog.Resolve(entry.ModelId, entry.Title);
+            foreach (var archetype in profile.Archetypes)
+            {
+                if (string.IsNullOrWhiteSpace(archetype))
+                    continue;
+
+                var key = archetype.Trim();
+                table[key] = table.GetValueOrDefault(key) + 1;
+            }
+        }
+
+        return table;
     }
 
     private static int ReadInt(object? source, string propertyName)
@@ -146,4 +248,28 @@ public static class LongStateCache
             _ => 0
         };
     }
+
+    private static string? ReadIdEntry(object source)
+    {
+        var idObject = source.GetType().GetProperty("Id")?.GetValue(source);
+        if (idObject == null)
+            return null;
+
+        return idObject.GetType().GetProperty("Entry")?.GetValue(idObject) as string;
+    }
+
+    private static string? ReadStringProperty(object source, string propertyName)
+    {
+        var value = source.GetType().GetProperty(propertyName)?.GetValue(source);
+        return value as string;
+    }
+
+    private static string? ReadLocalizedText(object source, string propertyName)
+    {
+        var localized = source.GetType().GetProperty(propertyName)?.GetValue(source);
+        var text = localized?.GetType().GetMethod("GetFormattedText", Type.EmptyTypes)?.Invoke(localized, null);
+        return text as string;
+    }
+
+    private readonly record struct CardEntrySnapshot(string? ModelId, string? Title, string DisplayName);
 }

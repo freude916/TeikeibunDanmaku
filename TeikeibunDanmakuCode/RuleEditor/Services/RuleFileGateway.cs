@@ -10,7 +10,7 @@ public sealed class RuleFileGateway
     {
         var dir = RuleRuntime.GetRulesDirectoryPath();
         Directory.CreateDirectory(dir);
-        return RuleJsoncIo.ListJsoncFiles(dir);
+        return RuleJsoncIo.ListRuleFiles(dir);
     }
 
     public string EnsureFilePath(string fileName)
@@ -23,9 +23,9 @@ public sealed class RuleFileGateway
             throw new InvalidOperationException("File name cannot be empty.");
         }
 
-        if (!safeName.EndsWith(".jsonc", StringComparison.OrdinalIgnoreCase))
+        if (!safeName.EndsWith(RuleJsoncIo.RuleFileSuffix, StringComparison.OrdinalIgnoreCase))
         {
-            safeName += ".jsonc";
+            safeName += RuleJsoncIo.RuleFileSuffix;
         }
 
         var dir = RuleRuntime.GetRulesDirectoryPath();

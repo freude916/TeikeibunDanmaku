@@ -27,6 +27,8 @@ public static class CardRewardOpenedDetection
                 .OfType<CardModel>()
                 .ToList();
 
+            RewardOpenTimepoint.FromCards(cards).Publish();
+
             foreach (var card in cards) // cards.Count == 0 就自动跳过了呗
             {
                 RewardSeenTimepoint.From(card).Publish();
